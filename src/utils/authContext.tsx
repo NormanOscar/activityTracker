@@ -10,7 +10,7 @@ import {
   User,
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { FIREBASE_AUTH, FIREBASE_DB } from "../../src/FirebaseConfig";
+import { FIREBASE_AUTH, FIREBASE_DB } from "../config/FirebaseConfig";
 
 SplashScreen.preventAutoHideAsync();
 

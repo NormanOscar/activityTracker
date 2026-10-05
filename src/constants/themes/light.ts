@@ -1,5 +1,5 @@
 export const lightTheme = {
-  background: "#FFFFFF",
+  background: "#FAFAFA",
   surface: "#F8F9FA",
   text: "#1A1A1A",
   secondaryText: "#555555",
@@ -7,4 +7,8 @@ export const lightTheme = {
   accent: "#4AA9E2",
   border: "#E0E0E0",
   card: "#FFFFFF",
+  modalBackground: "#FFFFFF",
+  noColorBackground: "#ECECEC",
+  disabled: "#E0E0E0",
+  disabledText: "#9CA3AF",
 };

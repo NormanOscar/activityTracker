@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Each user can only read/write their own profile document
+    // (the "users/{uid}" doc created in authContext.tsx on signup).
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Per-user activities (created via activityService.ts / NewActivityModal).
+      match /activities/{activityId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Everything else is denied by default.
+  }
+}
