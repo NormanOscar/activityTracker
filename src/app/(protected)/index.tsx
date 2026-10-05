@@ -1,25 +1,24 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Add01Icon, Moon02Icon, Sun03Icon, Pen01Icon, Settings02Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Pen01Icon, Settings02Icon } from "@hugeicons/core-free-icons";
 
 import { AuthContext } from "@/utils/authContext";
-import { useSettings } from "@/utils/settingsContext";
-import { useIsDark } from "@/hooks/use-is-dark";
 import { useTheme } from "@/hooks/use-theme";
-import { Palette } from "@/constants/colors";
 import { ActivityButton } from "@/components/ActivityButton";
+import { DateHeader } from "@/components/DateHeader";
 import { NewActivityModal } from "@/components/modals/NewActivityModal";
 import { getActivities } from "@/services/activityService";
 import type { Activity } from "@/models/Activity";
 
 export default function HomeScreen() {
-  const { user, logOut } = useContext(AuthContext);
-  const { toggleTheme } = useSettings();
-  const isDark = useIsDark();
+  const router = useRouter();
+  const { user } = useContext(AuthContext);
   const theme = useTheme();
 
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [activities, setActivities] = useState<Activity[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showNewActivity, setShowNewActivity] = useState(false);
@@ -48,29 +47,22 @@ export default function HomeScreen() {
     // Implement edit functionality here
   };
 
-  const navigateToSettings = () => {
-    // Implement navigation to settings here
-  };
-
   return (
     <View className="flex-1" style={{ backgroundColor: theme.background }}>
       <SafeAreaView className="flex-1" edges={["top"]}>
-        <View className="flex-row justify-between p-4">
-          <TouchableOpacity
-            onPress={toggleTheme}
-            className="h-10 w-10 items-center justify-center rounded-full"
-            style={{ backgroundColor: theme.surface }}
-          >
-            <HugeiconsIcon icon={isDark ? Sun03Icon : Moon02Icon} size={26} color={theme.text} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={navigateToSettings}
-            className="h-10 w-10 items-center justify-center rounded-full"
-            style={{ backgroundColor: theme.surface }}
-          >
-            <HugeiconsIcon icon={Settings02Icon} size={26} color={theme.text} />
-          </TouchableOpacity>
-        </View>
+        <DateHeader
+          date={selectedDate}
+          onChangeDate={setSelectedDate}
+          rightAccessory={
+            <TouchableOpacity
+              onPress={() => router.push("/settings")}
+              className="h-12 w-12 items-center justify-center rounded-full"
+              style={{ backgroundColor: theme.surface }}
+            >
+              <HugeiconsIcon icon={Settings02Icon} size={28} color={theme.text} />
+            </TouchableOpacity>
+          }
+        />
 
         <ScrollView
           className="flex-1 px-4"
@@ -88,30 +80,22 @@ export default function HomeScreen() {
             ))}
           </View>
         </ScrollView>
-
-        <View className="p-6">
-          <TouchableOpacity onPress={logOut} className="items-center py-3">
-            <Text className="font-semibold" style={{ color: Palette.danger }}>
-              Log out
-            </Text>
-          </TouchableOpacity>
-        </View>
       </SafeAreaView>
 
       <TouchableOpacity
         onPress={toggleEdit}
-        className="absolute bottom-8 left-6 h-14 w-14 items-center justify-center rounded-full shadow-lg"
-        style={{ backgroundColor: theme.primary, zIndex: 50, elevation: 10 }}
+        className="absolute bottom-8 left-6 h-20 w-20 items-center justify-center rounded-full shadow-lg"
+        style={{ backgroundColor: theme.editButton, zIndex: 50, elevation: 10 }}
       >
-        <HugeiconsIcon icon={Pen01Icon} size={26} color="#FFFFFF" />
+        <HugeiconsIcon icon={Pen01Icon} size={30} color={theme.text} />
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={() => setShowNewActivity(true)}
-        className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full shadow-lg"
+        className="absolute bottom-8 right-6 h-20 w-20 items-center justify-center rounded-full shadow-lg"
         style={{ backgroundColor: theme.primary, zIndex: 50, elevation: 10 }}
       >
-        <HugeiconsIcon icon={Add01Icon} size={26} color="#FFFFFF" />
+        <HugeiconsIcon icon={Add01Icon} size={30} color={theme.text} />
       </TouchableOpacity>
 
       <NewActivityModal

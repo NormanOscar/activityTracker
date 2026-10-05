@@ -3,7 +3,7 @@ export const lightTheme = {
   surface: "#F8F9FA",
   text: "#1A1A1A",
   secondaryText: "#555555",
-  primary: "#1E6EB7",
+  primary: "#7CACF8",
   accent: "#4AA9E2",
   border: "#E0E0E0",
   card: "#FFFFFF",
@@ -11,4 +11,5 @@ export const lightTheme = {
   noColorBackground: "#ECECEC",
   disabled: "#E0E0E0",
   disabledText: "#9CA3AF",
+  editButton: "#FFFFFF",
 };

@@ -8,18 +8,18 @@ const STORAGE_KEY = "@theme";
 
 type SettingsContextType = {
   theme: Theme;
-  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
   loading: boolean;
 };
 
 const SettingsContext = createContext<SettingsContextType>({
   theme: "light",
-  toggleTheme: () => {},
+  setTheme: () => {},
   loading: true,
 });
 
 export const SettingsProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setThemeState] = useState<Theme>("light");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,9 +27,9 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
         if (stored === "light" || stored === "dark") {
-          setTheme(stored);
+          setThemeState(stored);
         } else {
-          setTheme(Appearance.getColorScheme() === "dark" ? "dark" : "light");
+          setThemeState(Appearance.getColorScheme() === "dark" ? "dark" : "light");
         }
       } catch (err) {
         console.error("Failed to load theme:", err);
@@ -41,18 +41,15 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
     loadTheme();
   }, []);
 
-  const toggleTheme = () => {
-    setTheme((prev) => {
-      const next: Theme = prev === "dark" ? "light" : "dark";
-      AsyncStorage.setItem(STORAGE_KEY, next).catch((err) =>
-        console.error("Failed to save theme:", err)
-      );
-      return next;
-    });
+  const setTheme = (next: Theme) => {
+    setThemeState(next);
+    AsyncStorage.setItem(STORAGE_KEY, next).catch((err) =>
+      console.error("Failed to save theme:", err)
+    );
   };
 
   return (
-    <SettingsContext.Provider value={{ theme, toggleTheme, loading }}>
+    <SettingsContext.Provider value={{ theme, setTheme, loading }}>
       {children}
     </SettingsContext.Provider>
   );
