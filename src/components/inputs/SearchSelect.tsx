@@ -14,6 +14,16 @@ type SearchSelectProps<T> = {
   getLabel: (item: T) => string;
   renderItem?: (item: T, selected: boolean) => React.ReactNode;
   renderValue?: (item: T) => React.ReactNode;
+  // Full control over the closed trigger's content, including the empty (no
+  // selection) state — used for the compact swatch/icon-only boxes, which don't
+  // want the default label+placeholder text treatment at all.
+  renderTrigger?: (value: T | null) => React.ReactNode;
+  // When true, the trigger renders as a padded square box with centered content
+  // and no chevron (used for ColorSelect/IconSelect) instead of the default
+  // row-style field. triggerClassName/showChevron still override either preset.
+  squareTrigger?: boolean;
+  triggerClassName?: string;
+  showChevron?: boolean;
   placeholder?: string;
   searchPlaceholder?: string;
   title?: string;
@@ -32,6 +42,10 @@ export function SearchSelect<T>({
   getLabel,
   renderItem,
   renderValue,
+  renderTrigger,
+  squareTrigger = false,
+  triggerClassName,
+  showChevron,
   placeholder = "Select...",
   searchPlaceholder = "Search...",
   title,
@@ -41,6 +55,13 @@ export function SearchSelect<T>({
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+
+  const resolvedTriggerClassName =
+    triggerClassName ??
+    (squareTrigger
+      ? "h-28 w-28 items-center justify-center rounded-3xl border p-4"
+      : "flex-row items-center justify-between rounded-xl border px-4 py-3");
+  const resolvedShowChevron = showChevron ?? !squareTrigger;
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -60,15 +81,17 @@ export function SearchSelect<T>({
     <>
       <Pressable
         onPress={() => setOpen(true)}
-        className="flex-row items-center justify-between rounded-xl border px-4 py-3"
+        className={resolvedTriggerClassName}
         style={{ borderColor: theme.border, backgroundColor: theme.surface }}
       >
-        {value && renderValue ? (
+        {renderTrigger ? (
+          renderTrigger(value)
+        ) : value && renderValue ? (
           renderValue(value)
         ) : (
           <Text style={{ color: theme.secondaryText }}>{placeholder}</Text>
         )}
-        <HugeiconsIcon icon={ArrowDown01Icon} size={18} color={theme.secondaryText} />
+        {resolvedShowChevron && <HugeiconsIcon icon={ArrowDown01Icon} size={18} color={theme.secondaryText} />}
       </Pressable>
 
       <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>

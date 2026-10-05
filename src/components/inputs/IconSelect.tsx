@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as HugeIcons from "@hugeicons/core-free-icons";
+const { Cancel01Icon } = HugeIcons;
 
 import { getIconByName } from "@/utils/icons";
 import { useTheme } from "@/hooks/use-theme";
@@ -32,14 +33,13 @@ export function IconSelect({ value, onChange }: IconSelectProps) {
       title="Icon"
       numColumns={3}
       maxResults={60}
-      renderValue={(name) => {
-        const icon = getIconByName(name);
-        return (
-          <View className="flex-row items-center gap-2">
-            {icon && <HugeiconsIcon icon={icon} size={20} color={theme.text} />}
-            <Text style={{ color: theme.text }}>{labelFromName(name)}</Text>
-          </View>
-        );
+      squareTrigger
+      renderTrigger={(name) => {
+        const icon = name ? getIconByName(name) : undefined;
+        if (icon) return <HugeiconsIcon icon={icon} size={48} color={theme.text} />;
+        // No icon chosen yet — show a placeholder rather than an empty box,
+        // matching ColorSelect's "no selection" treatment.
+        return <HugeiconsIcon icon={Cancel01Icon} size={26} color={theme.secondaryText} />;
       }}
       renderItem={(name, selected) => {
         const icon = getIconByName(name);

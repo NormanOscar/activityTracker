@@ -29,16 +29,21 @@ export function ColorSelect({ value, onChange }: ColorSelectProps) {
       searchPlaceholder="Search colors..."
       title="Color"
       numColumns={3}
-      renderValue={(color) => (
-        <View className="flex-row items-center gap-2">
-          <View className="h-6 w-6 items-center justify-center rounded-full" style={swatchStyle(color)}>
-            {color.id === NO_COLOR_ID && (
-              <HugeiconsIcon icon={Cancel01Icon} size={12} color={theme.secondaryText} />
-            )}
+      squareTrigger
+      renderTrigger={(color) => {
+        // No selection yet reads the same as the "No color" option itself —
+        // a blank theme.background circle looked like a rendering glitch
+        // rather than a deliberate empty state.
+        const isNoColor = !color || color.id === NO_COLOR_ID;
+        return (
+          <View
+            className="h-16 w-16 items-center justify-center rounded-full"
+            style={{ backgroundColor: isNoColor ? theme.noColorBackground : color.hex }}
+          >
+            {isNoColor && <HugeiconsIcon icon={Cancel01Icon} size={26} color={theme.secondaryText} />}
           </View>
-          <Text style={{ color: theme.text }}>{color.name}</Text>
-        </View>
-      )}
+        );
+      }}
       renderItem={(color, selected) => (
         <View className="items-center gap-2 rounded-xl p-3">
           <View
