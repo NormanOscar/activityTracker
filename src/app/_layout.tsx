@@ -1,15 +1,32 @@
-import "../../global.css";
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { Stack } from "expo-router";
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'react-native';
+
+import '../../global.css';
+import { AuthProvider } from "@/utils/authContext";
+import { SettingsProvider } from "@/utils/settingsContext";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <StatusBar style="auto" />
-      <Stack screenOptions={{ headerShown: false }} />
-    </ThemeProvider>
-  );
+    <AuthProvider>
+      <SettingsProvider>
+        <StatusBar style="auto" />
+        <Stack>
+          <Stack.Screen
+            name="(protected)"
+            options={{
+              headerShown: false,
+              animation: "none"
+            }}
+          />
+          <Stack.Screen
+            name="(auth)"
+            options={{
+              headerShown: false,
+              animation: "none"
+            }}
+          />
+        </Stack>
+      </SettingsProvider>
+    </AuthProvider>
+  )
 }
