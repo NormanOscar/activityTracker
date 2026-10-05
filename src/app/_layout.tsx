@@ -1,4 +1,4 @@
-import "../global.css";
+import "../../global.css";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
