@@ -11,11 +11,21 @@ type AddMenuProps = {
   onSelectCategory: () => void;
 };
 
-export function AddMenu({ visible, onClose, onSelectActivity, onSelectCategory }: AddMenuProps) {
+export function AddMenu({
+  visible,
+  onClose,
+  onSelectActivity,
+  onSelectCategory,
+}: AddMenuProps) {
   const theme = useTheme();
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <Pressable className="flex-1 bg-black/50" onPress={onClose}>
         <View
           className="absolute bottom-32 right-6 min-w-[200px] overflow-hidden rounded-2xl"
@@ -38,7 +48,10 @@ export function AddMenu({ visible, onClose, onSelectActivity, onSelectCategory }
             className="flex-row items-center gap-4 px-6 py-5"
           >
             <HugeiconsIcon icon={Activity01Icon} size={26} color={theme.text} />
-            <Text className="text-lg font-semibold" style={{ color: theme.text }}>
+            <Text
+              className="text-lg font-semibold"
+              style={{ color: theme.text }}
+            >
               Activity
             </Text>
           </Pressable>
@@ -53,7 +66,10 @@ export function AddMenu({ visible, onClose, onSelectActivity, onSelectCategory }
             className="flex-row items-center gap-4 px-6 py-5"
           >
             <HugeiconsIcon icon={FolderAddIcon} size={26} color={theme.text} />
-            <Text className="text-lg font-semibold" style={{ color: theme.text }}>
+            <Text
+              className="text-lg font-semibold"
+              style={{ color: theme.text }}
+            >
               Category
             </Text>
           </Pressable>

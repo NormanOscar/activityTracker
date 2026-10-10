@@ -45,7 +45,9 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="flex-1 justify-center px-8">
-            <Text className="mb-8 text-center text-3xl font-bold text-white">Sign in</Text>
+            <Text className="mb-8 text-center text-3xl font-bold text-white">
+              Sign in
+            </Text>
 
             <TextInput
               placeholder="Email"
@@ -74,7 +76,9 @@ export default function LoginScreen() {
               onPress={() => router.push("/(auth)/forgotPassword")}
               className="mb-2 self-end"
             >
-              <Text className="text-sm text-white underline">Forgot password?</Text>
+              <Text className="text-sm text-white underline">
+                Forgot password?
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -88,13 +92,19 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => router.replace("/(auth)/signup")} className="mt-8">
+            <TouchableOpacity
+              onPress={() => router.replace("/(auth)/signup")}
+              className="mt-8"
+            >
               <Text className="text-center text-white">
-                Don&apos;t have an account? <Text className="font-bold underline">Sign up</Text>
+                Don&apos;t have an account?{" "}
+                <Text className="font-bold underline">Sign up</Text>
               </Text>
             </TouchableOpacity>
 
-            {error ? <Text className="mt-4 text-center text-red-200">{error}</Text> : null}
+            {error ? (
+              <Text className="mt-4 text-center text-red-200">{error}</Text>
+            ) : null}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

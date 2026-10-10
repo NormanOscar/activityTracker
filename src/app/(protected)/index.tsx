@@ -4,7 +4,11 @@ import { ScrollView as GestureHandlerScrollView } from "react-native-gesture-han
 import Animated, { useAnimatedRef } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Add01Icon, BlockGameIcon, Settings02Icon } from "@hugeicons/core-free-icons";
+import {
+  Add01Icon,
+  BlockGameIcon,
+  Settings02Icon,
+} from "@hugeicons/core-free-icons";
 import Sortable from "react-native-sortables";
 
 import { AuthContext } from "@/context/authContext";
@@ -29,9 +33,15 @@ import { getDateKey, startOfDay } from "@/utils/dateKey";
 import { Palette } from "@/constants/colors";
 import type { Category } from "@/models/Category";
 
-const AnimatedScrollView = Animated.createAnimatedComponent(GestureHandlerScrollView);
+const AnimatedScrollView = Animated.createAnimatedComponent(
+  GestureHandlerScrollView,
+);
 
-const FAVORITES_SECTION: Category = { id: "favorites", name: "Favorites", sortOrder: -1 };
+const FAVORITES_SECTION: Category = {
+  id: "favorites",
+  name: "Favorites",
+  sortOrder: -1,
+};
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -64,9 +74,12 @@ export default function HomeScreen() {
   const visibleActivities = useMemo(() => {
     const dateKey = getDateKey(selectedDate);
     return activities.filter((activity) => {
-      const afterCreation = !activity.createdAt || dateKey >= getDateKey(activity.createdAt);
-      const beforeArchived = !activity.archivedAt || dateKey < getDateKey(activity.archivedAt);
-      const beforeDeleted = !activity.deletedAt || dateKey < getDateKey(activity.deletedAt);
+      const afterCreation =
+        !activity.createdAt || dateKey >= getDateKey(activity.createdAt);
+      const beforeArchived =
+        !activity.archivedAt || dateKey < getDateKey(activity.archivedAt);
+      const beforeDeleted =
+        !activity.deletedAt || dateKey < getDateKey(activity.deletedAt);
       return afterCreation && beforeArchived && beforeDeleted;
     });
   }, [activities, selectedDate]);
@@ -76,7 +89,10 @@ export default function HomeScreen() {
     for (const category of categories) {
       map.set(
         category.id,
-        visibleActivities.filter((activity) => !activity.isFavorite && activity.categoryId === category.id)
+        visibleActivities.filter(
+          (activity) =>
+            !activity.isFavorite && activity.categoryId === category.id,
+        ),
       );
     }
     return map;
@@ -84,12 +100,15 @@ export default function HomeScreen() {
 
   const favoriteActivities = useMemo(
     () => visibleActivities.filter((activity) => activity.isFavorite),
-    [visibleActivities]
+    [visibleActivities],
   );
 
   const uncategorizedActivities = useMemo(
-    () => visibleActivities.filter((activity) => !activity.isFavorite && !activity.categoryId),
-    [visibleActivities]
+    () =>
+      visibleActivities.filter(
+        (activity) => !activity.isFavorite && !activity.categoryId,
+      ),
+    [visibleActivities],
   );
 
   useEffect(() => {
@@ -97,18 +116,28 @@ export default function HomeScreen() {
     loadFullActivities();
   }, [selectedDate, todayDate, loadFullActivities]);
 
-  const { loggedIds, toggleLog: handleToggleLog } = useDailyLog(user?.uid, selectedDate);
+  const { loggedIds, toggleLog: handleToggleLog } = useDailyLog(
+    user?.uid,
+    selectedDate,
+  );
 
-  const { editMode, savingOrder, enterEditMode, cancelEditMode, saveEditMode, moveCategory, handleActivityDragEnd } =
-    useEditMode({
-      userId: user?.uid,
-      activities,
-      setActivities,
-      categories,
-      setCategories,
-      activitiesByCategory,
-      uncategorizedActivities,
-    });
+  const {
+    editMode,
+    savingOrder,
+    enterEditMode,
+    cancelEditMode,
+    saveEditMode,
+    moveCategory,
+    handleActivityDragEnd,
+  } = useEditMode({
+    userId: user?.uid,
+    activities,
+    setActivities,
+    categories,
+    setCategories,
+    activitiesByCategory,
+    uncategorizedActivities,
+  });
 
   const {
     editingActivity,
@@ -156,9 +185,16 @@ export default function HomeScreen() {
               onPress={() => router.push("/settings")}
               disabled={editMode}
               className="h-12 w-12 items-center justify-center rounded-full"
-              style={{ backgroundColor: theme.surface, opacity: editMode ? 0.4 : 1 }}
+              style={{
+                backgroundColor: theme.surface,
+                opacity: editMode ? 0.4 : 1,
+              }}
             >
-              <HugeiconsIcon icon={Settings02Icon} size={28} color={theme.text} />
+              <HugeiconsIcon
+                icon={Settings02Icon}
+                size={28}
+                color={theme.text}
+              />
             </TouchableOpacity>
           }
         />
@@ -169,7 +205,11 @@ export default function HomeScreen() {
           contentContainerStyle={{ paddingBottom: 105 }}
           refreshControl={
             editMode ? undefined : (
-              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.loadingSpinner} />
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={theme.loadingSpinner}
+              />
             )
           }
         >
@@ -183,10 +223,20 @@ export default function HomeScreen() {
             <View>
               {[0, 1].map((i) => (
                 <View key={i} className="mb-4">
-                  <SkeletonLoader width={120} height={24} borderRadius={6} className="mb-3" />
+                  <SkeletonLoader
+                    width={120}
+                    height={24}
+                    borderRadius={6}
+                    className="mb-3"
+                  />
                   <View className="flex-row flex-wrap gap-3">
                     {[0, 1, 2].map((j) => (
-                      <SkeletonLoader key={j} width="31%" height={100} borderRadius={16} />
+                      <SkeletonLoader
+                        key={j}
+                        width="31%"
+                        height={100}
+                        borderRadius={16}
+                      />
                     ))}
                   </View>
                 </View>
@@ -195,7 +245,9 @@ export default function HomeScreen() {
           ) : (
             <>
               {visibleActivities.length === 0 && (
-                <Text className="mb-4" style={{ color: theme.secondaryText }}>No activities yet.</Text>
+                <Text className="mb-4" style={{ color: theme.secondaryText }}>
+                  No activities yet.
+                </Text>
               )}
 
               {favoriteActivities.length > 0 && (
@@ -233,7 +285,10 @@ export default function HomeScreen() {
 
               {uncategorizedActivities.length > 0 && (
                 <View className="mb-6">
-                  <Text className="mb-3 text-base font-bold" style={{ color: theme.text }}>
+                  <Text
+                    className="mb-3 text-base font-bold"
+                    style={{ color: theme.text }}
+                  >
                     No category
                   </Text>
                   <Sortable.Grid
@@ -253,8 +308,14 @@ export default function HomeScreen() {
                         {...item}
                         editMode={editMode}
                         logged={loggedIds.has(item.id)}
-                        onPress={editMode ? undefined : () => handleToggleLog(item)}
-                        onLongPress={editMode ? undefined : () => handleActivityLongPress(item)}
+                        onPress={
+                          editMode ? undefined : () => handleToggleLog(item)
+                        }
+                        onLongPress={
+                          editMode
+                            ? undefined
+                            : () => handleActivityLongPress(item)
+                        }
                       />
                     )}
                   />
@@ -266,7 +327,10 @@ export default function HomeScreen() {
       </View>
 
       {editMode ? (
-        <View className="absolute bottom-8 left-6 right-6 flex-row justify-between" style={{ zIndex: 50 }}>
+        <View
+          className="absolute bottom-8 left-6 right-6 flex-row justify-between"
+          style={{ zIndex: 50 }}
+        >
           <TouchableOpacity
             onPress={cancelEditMode}
             disabled={savingOrder}
@@ -282,9 +346,14 @@ export default function HomeScreen() {
             onPress={saveEditMode}
             disabled={savingOrder}
             className="rounded-full px-6 py-4 shadow-lg"
-            style={{ backgroundColor: savingOrder ? theme.disabled : theme.primary }}
+            style={{
+              backgroundColor: savingOrder ? theme.disabled : theme.primary,
+            }}
           >
-            <Text className="font-semibold" style={{ color: savingOrder ? theme.disabledText : "#FFFFFF" }}>
+            <Text
+              className="font-semibold"
+              style={{ color: savingOrder ? theme.disabledText : "#FFFFFF" }}
+            >
               {savingOrder ? "Saving..." : "Save"}
             </Text>
           </TouchableOpacity>
@@ -295,7 +364,12 @@ export default function HomeScreen() {
             onPress={enterEditMode}
             disabled={loading}
             className="absolute bottom-8 left-6 h-20 w-20 items-center justify-center rounded-full shadow-lg"
-            style={{ backgroundColor: theme.editButton, zIndex: 50, elevation: 10, opacity: loading ? 0.4 : 1 }}
+            style={{
+              backgroundColor: theme.editButton,
+              zIndex: 50,
+              elevation: 10,
+              opacity: loading ? 0.4 : 1,
+            }}
           >
             <HugeiconsIcon icon={BlockGameIcon} size={30} color={theme.text} />
           </TouchableOpacity>
@@ -304,7 +378,12 @@ export default function HomeScreen() {
             onPress={() => setShowAddMenu(true)}
             disabled={loading}
             className="absolute bottom-8 right-6 h-20 w-20 items-center justify-center rounded-full shadow-lg"
-            style={{ backgroundColor: theme.primary, zIndex: 50, elevation: 10, opacity: loading ? 0.4 : 1 }}
+            style={{
+              backgroundColor: theme.primary,
+              zIndex: 50,
+              elevation: 10,
+              opacity: loading ? 0.4 : 1,
+            }}
           >
             <HugeiconsIcon icon={Add01Icon} size={30} color={theme.text} />
           </TouchableOpacity>
@@ -350,14 +429,26 @@ export default function HomeScreen() {
 
       <ConfirmationModal
         visible={!!pendingAction}
-        title={pendingAction?.type === "archive" ? "Archive activity?" : "Delete activity?"}
+        title={
+          pendingAction?.type === "archive"
+            ? "Archive activity?"
+            : "Delete activity?"
+        }
         message={
           pendingAction
             ? `"${pendingAction.activity.name}" will stop showing from today onward. Earlier days keep their history.`
             : undefined
         }
-        confirmLabel={actionLoading ? "Working..." : pendingAction?.type === "archive" ? "Archive" : "Delete"}
-        confirmColor={pendingAction?.type === "delete" ? Palette.danger : theme.primary}
+        confirmLabel={
+          actionLoading
+            ? "Working..."
+            : pendingAction?.type === "archive"
+              ? "Archive"
+              : "Delete"
+        }
+        confirmColor={
+          pendingAction?.type === "delete" ? Palette.danger : theme.primary
+        }
         loading={actionLoading}
         onConfirm={confirmPendingAction}
         onCancel={() => setPendingAction(null)}

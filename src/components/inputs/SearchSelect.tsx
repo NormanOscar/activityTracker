@@ -1,7 +1,18 @@
 import { useMemo, useState } from "react";
-import { FlatList, Modal, Pressable, Text, TextInput, View } from "react-native";
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ArrowDown01Icon, Cancel01Icon, Search01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  Cancel01Icon,
+  Search01Icon,
+} from "@hugeicons/core-free-icons";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { useTheme } from "@/hooks/use-theme";
@@ -65,7 +76,9 @@ export function SearchSelect<T>({
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const filtered = q ? items.filter((item) => getLabel(item).toLowerCase().includes(q)) : items;
+    const filtered = q
+      ? items.filter((item) => getLabel(item).toLowerCase().includes(q))
+      : items;
     return filtered.slice(0, maxResults);
   }, [items, query, getLabel, maxResults]);
 
@@ -91,12 +104,25 @@ export function SearchSelect<T>({
         ) : (
           <Text style={{ color: theme.secondaryText }}>{placeholder}</Text>
         )}
-        {resolvedShowChevron && <HugeiconsIcon icon={ArrowDown01Icon} size={18} color={theme.secondaryText} />}
+        {resolvedShowChevron && (
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
+            size={18}
+            color={theme.secondaryText}
+          />
+        )}
       </Pressable>
 
-      <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
+      <Modal
+        visible={open}
+        animationType="slide"
+        onRequestClose={() => setOpen(false)}
+      >
         <SafeAreaProvider>
-          <SafeAreaView className="flex-1" style={{ backgroundColor: theme.modalBackground }}>
+          <SafeAreaView
+            className="flex-1"
+            style={{ backgroundColor: theme.modalBackground }}
+          >
             <View className="flex-row items-center justify-between px-4 py-3">
               <Text className="text-lg font-bold" style={{ color: theme.text }}>
                 {title ?? placeholder}
@@ -106,15 +132,26 @@ export function SearchSelect<T>({
                 className="h-9 w-9 items-center justify-center rounded-full"
                 style={{ backgroundColor: theme.surface }}
               >
-                <HugeiconsIcon icon={Cancel01Icon} size={18} color={theme.text} />
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  size={18}
+                  color={theme.text}
+                />
               </Pressable>
             </View>
 
             <View
               className="mx-4 mb-3 flex-row items-center gap-2 rounded-xl border px-3 py-2"
-              style={{ borderColor: theme.border, backgroundColor: theme.surface }}
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.surface,
+              }}
             >
-              <HugeiconsIcon icon={Search01Icon} size={18} color={theme.secondaryText} />
+              <HugeiconsIcon
+                icon={Search01Icon}
+                size={18}
+                color={theme.secondaryText}
+              />
               <TextInput
                 value={query}
                 onChangeText={setQuery}
@@ -138,17 +175,25 @@ export function SearchSelect<T>({
               renderItem={({ item }) => {
                 const selected = getKey(item) === selectedKey;
                 return (
-                  <Pressable onPress={() => handleSelect(item)} style={{ flex: numColumns > 1 ? 1 : undefined }}>
+                  <Pressable
+                    onPress={() => handleSelect(item)}
+                    style={{ flex: numColumns > 1 ? 1 : undefined }}
+                  >
                     {renderItem ? (
                       renderItem(item, selected)
                     ) : (
-                      <Text style={{ color: theme.text }}>{getLabel(item)}</Text>
+                      <Text style={{ color: theme.text }}>
+                        {getLabel(item)}
+                      </Text>
                     )}
                   </Pressable>
                 );
               }}
               ListEmptyComponent={
-                <Text className="mt-8 text-center" style={{ color: theme.secondaryText }}>
+                <Text
+                  className="mt-8 text-center"
+                  style={{ color: theme.secondaryText }}
+                >
                   No results
                 </Text>
               }

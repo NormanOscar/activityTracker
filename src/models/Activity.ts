@@ -11,4 +11,4 @@ export type Activity = {
   archivedAt: Date | null;
   deletedAt: Date | null;
   sortOrder: number;
-}
+};

@@ -36,8 +36,16 @@ export function DateField({ value, onChange }: DateFieldProps) {
         </Text>
       </Pressable>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable onPress={() => setOpen(false)} className="flex-1 items-center justify-center bg-black/50 px-3">
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
+        <Pressable
+          onPress={() => setOpen(false)}
+          className="flex-1 items-center justify-center bg-black/50 px-3"
+        >
           <Pressable
             onPress={(e) => e.stopPropagation()}
             className="w-full max-w-md rounded-2xl px-2 py-4"

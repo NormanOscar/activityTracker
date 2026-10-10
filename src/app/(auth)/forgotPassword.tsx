@@ -46,7 +46,9 @@ export default function ForgotPasswordScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="flex-1 justify-center px-8">
-            <Text className="mb-6 text-center text-3xl font-bold text-white">Reset password</Text>
+            <Text className="mb-6 text-center text-3xl font-bold text-white">
+              Reset password
+            </Text>
 
             {sent ? (
               <Text className="mb-6 text-center text-white">
@@ -55,7 +57,8 @@ export default function ForgotPasswordScreen() {
             ) : (
               <>
                 <Text className="mb-6 text-center text-white">
-                  Enter your email and we'll send you a link to reset your password.
+                  Enter your email and we&apos;ll send you a link to reset your
+                  password.
                 </Text>
 
                 <TextInput
@@ -83,11 +86,18 @@ export default function ForgotPasswordScreen() {
               </>
             )}
 
-            <TouchableOpacity onPress={() => router.replace("/(auth)/login")} className="mt-8">
-              <Text className="text-center font-bold text-white underline">Back to sign in</Text>
+            <TouchableOpacity
+              onPress={() => router.replace("/(auth)/login")}
+              className="mt-8"
+            >
+              <Text className="text-center font-bold text-white underline">
+                Back to sign in
+              </Text>
             </TouchableOpacity>
 
-            {error ? <Text className="mt-4 text-center text-red-200">{error}</Text> : null}
+            {error ? (
+              <Text className="mt-4 text-center text-red-200">{error}</Text>
+            ) : null}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

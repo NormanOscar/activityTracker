@@ -51,7 +51,8 @@ export function CreateActivityModal({
     setError("");
   }, [visible, defaultCreatedAt]);
 
-  const canSave = name.trim().length > 0 && color !== null && icon !== null && !saving;
+  const canSave =
+    name.trim().length > 0 && color !== null && icon !== null && !saving;
 
   const handleClose = () => {
     if (saving) return;
@@ -81,8 +82,16 @@ export function CreateActivityModal({
   };
 
   return (
-    <Modal visible={visible} animationType="fade" transparent onRequestClose={handleClose}>
-      <Pressable onPress={handleClose} className="flex-1 items-center justify-center bg-black/50 px-6">
+    <Modal
+      visible={visible}
+      animationType="fade"
+      transparent
+      onRequestClose={handleClose}
+    >
+      <Pressable
+        onPress={handleClose}
+        className="flex-1 items-center justify-center bg-black/50 px-6"
+      >
         <Pressable
           onPress={(e) => e.stopPropagation()}
           className="w-full max-w-sm rounded-2xl p-5"
@@ -96,7 +105,10 @@ export function CreateActivityModal({
               onPress={handleClose}
               disabled={saving}
               className="h-9 w-9 items-center justify-center rounded-full"
-              style={{ backgroundColor: theme.surface, opacity: saving ? 0.5 : 1 }}
+              style={{
+                backgroundColor: theme.surface,
+                opacity: saving ? 0.5 : 1,
+              }}
             >
               <HugeiconsIcon icon={Cancel01Icon} size={18} color={theme.text} />
             </Pressable>
@@ -104,7 +116,10 @@ export function CreateActivityModal({
 
           <View className="gap-4">
             <View className="gap-2">
-              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+              <Text
+                className="text-sm font-semibold"
+                style={{ color: theme.secondaryText }}
+              >
                 Name
               </Text>
               <TextInput
@@ -113,19 +128,33 @@ export function CreateActivityModal({
                 placeholder="e.g. Play Chess"
                 placeholderTextColor={theme.secondaryText}
                 className="rounded-xl border px-4 py-3"
-                style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.text }}
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: theme.surface,
+                  color: theme.text,
+                }}
               />
             </View>
 
             <View className="gap-2">
-              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+              <Text
+                className="text-sm font-semibold"
+                style={{ color: theme.secondaryText }}
+              >
                 Category
               </Text>
-              <CategorySelect categories={categories} value={categoryId} onChange={setCategoryId} />
+              <CategorySelect
+                categories={categories}
+                value={categoryId}
+                onChange={setCategoryId}
+              />
             </View>
 
             <View className="gap-2">
-              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+              <Text
+                className="text-sm font-semibold"
+                style={{ color: theme.secondaryText }}
+              >
                 Start date
               </Text>
               <DateField value={startDate} onChange={setStartDate} />
@@ -133,28 +162,41 @@ export function CreateActivityModal({
 
             <View className="flex-row justify-center gap-6">
               <View className="items-center gap-2">
-                <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                <Text
+                  className="text-sm font-semibold"
+                  style={{ color: theme.secondaryText }}
+                >
                   Color
                 </Text>
                 <ColorSelect value={color} onChange={setColor} />
               </View>
               <View className="items-center gap-2">
-                <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                <Text
+                  className="text-sm font-semibold"
+                  style={{ color: theme.secondaryText }}
+                >
                   Icon
                 </Text>
                 <IconSelect value={icon} onChange={setIcon} />
               </View>
             </View>
 
-            {error ? <Text style={{ color: Palette.danger }}>{error}</Text> : null}
+            {error ? (
+              <Text style={{ color: Palette.danger }}>{error}</Text>
+            ) : null}
 
             <Pressable
               onPress={handleSave}
               disabled={!canSave}
               className="mt-2 items-center rounded-xl py-3"
-              style={{ backgroundColor: canSave ? theme.primary : theme.disabled }}
+              style={{
+                backgroundColor: canSave ? theme.primary : theme.disabled,
+              }}
             >
-              <Text className="font-semibold" style={{ color: canSave ? theme.text : theme.disabledText }}>
+              <Text
+                className="font-semibold"
+                style={{ color: canSave ? theme.text : theme.disabledText }}
+              >
                 {saving ? "Saving..." : "Create"}
               </Text>
             </Pressable>

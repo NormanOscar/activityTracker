@@ -16,7 +16,9 @@ export function ColorSelect({ value, onChange }: ColorSelectProps) {
   const theme = useTheme();
 
   const swatchStyle = (color: Color) =>
-    color.id === NO_COLOR_ID ? { backgroundColor: theme.noColorBackground } : { backgroundColor: color.hex };
+    color.id === NO_COLOR_ID
+      ? { backgroundColor: theme.noColorBackground }
+      : { backgroundColor: color.hex };
 
   return (
     <SearchSelect<Color>
@@ -38,9 +40,17 @@ export function ColorSelect({ value, onChange }: ColorSelectProps) {
         return (
           <View
             className="h-16 w-16 items-center justify-center rounded-full"
-            style={{ backgroundColor: isNoColor ? theme.noColorBackground : color.hex }}
+            style={{
+              backgroundColor: isNoColor ? theme.noColorBackground : color.hex,
+            }}
           >
-            {isNoColor && <HugeiconsIcon icon={Cancel01Icon} size={26} color={theme.secondaryText} />}
+            {isNoColor && (
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                size={26}
+                color={theme.secondaryText}
+              />
+            )}
           </View>
         );
       }}
@@ -55,7 +65,11 @@ export function ColorSelect({ value, onChange }: ColorSelectProps) {
             }}
           >
             {color.id === NO_COLOR_ID && (
-              <HugeiconsIcon icon={Cancel01Icon} size={32} color={theme.secondaryText} />
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                size={32}
+                color={theme.secondaryText}
+              />
             )}
           </View>
           <Text className="text-sm" style={{ color: theme.text }}>

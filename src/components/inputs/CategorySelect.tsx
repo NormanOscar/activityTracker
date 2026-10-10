@@ -12,10 +12,15 @@ type CategorySelectProps = {
 
 const NO_CATEGORY: Category = { id: "", name: "No category", sortOrder: -1 };
 
-export function CategorySelect({ categories, value, onChange }: CategorySelectProps) {
+export function CategorySelect({
+  categories,
+  value,
+  onChange,
+}: CategorySelectProps) {
   const theme = useTheme();
   const items = [NO_CATEGORY, ...categories];
-  const selected = items.find((category) => category.id === value) ?? NO_CATEGORY;
+  const selected =
+    items.find((category) => category.id === value) ?? NO_CATEGORY;
 
   return (
     <SearchSelect<Category>

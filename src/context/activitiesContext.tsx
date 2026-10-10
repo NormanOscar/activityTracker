@@ -1,4 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import type { Dispatch, PropsWithChildren, SetStateAction } from "react";
 
 import { AuthContext } from "@/context/authContext";
@@ -41,7 +47,9 @@ export function ActivitiesProvider({ children }: PropsWithChildren) {
   const refreshActivities = useCallback(async () => {
     if (!user) return;
     try {
-      const data = hasFullActivities ? await getActivities(user.uid) : await getActiveActivities(user.uid);
+      const data = hasFullActivities
+        ? await getActivities(user.uid)
+        : await getActiveActivities(user.uid);
       setActivities(data);
     } catch (err) {
       console.error("Failed to refresh activities:", err);
@@ -84,7 +92,9 @@ export function ActivitiesProvider({ children }: PropsWithChildren) {
         setActivities(activitiesData);
         setCategories(categoriesData);
       })
-      .catch((err) => console.error("Failed to load activities/categories:", err))
+      .catch((err) =>
+        console.error("Failed to load activities/categories:", err),
+      )
       .finally(() => setLoading(false));
   }, [user]);
 

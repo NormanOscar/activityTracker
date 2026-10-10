@@ -1,4 +1,10 @@
-import { arrayRemove, arrayUnion, doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  arrayRemove,
+  arrayUnion,
+  doc,
+  getDoc,
+  setDoc,
+} from "firebase/firestore";
 
 import { FIREBASE_DB } from "@/config/FirebaseConfig";
 import type { DailyLog } from "@/models/DailyLog";
@@ -7,7 +13,10 @@ function logDoc(userId: string, dateKey: string) {
   return doc(FIREBASE_DB, "users", userId, "logs", dateKey);
 }
 
-export async function getDailyLog(userId: string, dateKey: string): Promise<DailyLog> {
+export async function getDailyLog(
+  userId: string,
+  dateKey: string,
+): Promise<DailyLog> {
   const snapshot = await getDoc(logDoc(userId, dateKey));
   if (!snapshot.exists()) {
     return { date: dateKey, activityIds: [] };
@@ -21,7 +30,7 @@ export async function toggleActivityLog(
   userId: string,
   dateKey: string,
   activityId: string,
-  logged: boolean
+  logged: boolean,
 ): Promise<void> {
   await setDoc(
     logDoc(userId, dateKey),
@@ -29,6 +38,6 @@ export async function toggleActivityLog(
       date: dateKey,
       activityIds: logged ? arrayUnion(activityId) : arrayRemove(activityId),
     },
-    { merge: true }
+    { merge: true },
   );
 }

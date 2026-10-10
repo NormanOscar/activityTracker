@@ -54,7 +54,9 @@ export default function SignupScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="flex-1 justify-center px-8">
-            <Text className="mb-8 text-center text-3xl font-bold text-white">Create account</Text>
+            <Text className="mb-8 text-center text-3xl font-bold text-white">
+              Create account
+            </Text>
 
             <TextInput
               placeholder="First name"
@@ -122,7 +124,9 @@ export default function SignupScreen() {
               </TouchableOpacity>
             </View>
 
-            {error ? <Text className="mt-4 text-center text-red-200">{error}</Text> : null}
+            {error ? (
+              <Text className="mt-4 text-center text-red-200">{error}</Text>
+            ) : null}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -14,9 +14,14 @@ type UseActivityActionsParams = {
   setActivities: Dispatch<SetStateAction<Activity[]>>;
 };
 
-export function useActivityActions({ userId, selectedDate, setActivities }: UseActivityActionsParams) {
+export function useActivityActions({
+  userId,
+  selectedDate,
+  setActivities,
+}: UseActivityActionsParams) {
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
-  const [pendingAction, setPendingAction] = useState<PendingActivityAction | null>(null);
+  const [pendingAction, setPendingAction] =
+    useState<PendingActivityAction | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   const handleActivityLongPress = (activity: Activity) => {
@@ -51,8 +56,8 @@ export function useActivityActions({ userId, selectedDate, setActivities }: UseA
             ? type === "archive"
               ? { ...a, archivedAt: cutoff }
               : { ...a, deletedAt: cutoff }
-            : a
-        )
+            : a,
+        ),
       );
       setPendingAction(null);
     } catch (err) {
@@ -64,7 +69,9 @@ export function useActivityActions({ userId, selectedDate, setActivities }: UseA
   };
 
   const handleActivitySaved = (updated: Activity) => {
-    setActivities((prev) => prev.map((activity) => (activity.id === updated.id ? updated : activity)));
+    setActivities((prev) =>
+      prev.map((activity) => (activity.id === updated.id ? updated : activity)),
+    );
     setEditingActivity(null);
   };
 

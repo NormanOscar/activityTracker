@@ -1,8 +1,8 @@
 import { Stack } from "expo-router";
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import '../../global.css';
+import "../../global.css";
 import { AuthProvider } from "@/context/authContext";
 import { SettingsProvider } from "@/context/settingsContext";
 
@@ -17,19 +17,19 @@ export default function RootLayout() {
               name="(protected)"
               options={{
                 headerShown: false,
-                animation: "none"
+                animation: "none",
               }}
             />
             <Stack.Screen
               name="(auth)"
               options={{
                 headerShown: false,
-                animation: "none"
+                animation: "none",
               }}
             />
           </Stack>
         </SettingsProvider>
       </AuthProvider>
     </GestureHandlerRootView>
-  )
+  );
 }

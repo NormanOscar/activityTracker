@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Animated } from "react-native";
 import type { DimensionValue } from "react-native";
 
@@ -11,16 +11,29 @@ type SkeletonLoaderProps = {
   className?: string;
 };
 
-export function SkeletonLoader({ width = "100%", height = 16, borderRadius = 8, className }: SkeletonLoaderProps) {
+export function SkeletonLoader({
+  width = "100%",
+  height = 16,
+  borderRadius = 8,
+  className,
+}: SkeletonLoaderProps) {
   const theme = useTheme();
-  const opacity = useRef(new Animated.Value(0.4)).current;
+  const [opacity] = useState(() => new Animated.Value(0.4));
 
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.4, duration: 700, useNativeDriver: true }),
-      ])
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.4,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ]),
     );
     loop.start();
     return () => loop.stop();
@@ -29,7 +42,13 @@ export function SkeletonLoader({ width = "100%", height = 16, borderRadius = 8, 
   return (
     <Animated.View
       className={className}
-      style={{ width, height, borderRadius, backgroundColor: theme.surface, opacity }}
+      style={{
+        width,
+        height,
+        borderRadius,
+        backgroundColor: theme.surface,
+        opacity,
+      }}
     />
   );
 }

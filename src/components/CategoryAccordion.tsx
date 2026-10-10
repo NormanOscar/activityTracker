@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ArrowDown01Icon, ArrowDown02Icon, ArrowUp02Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowDown01Icon,
+  ArrowDown02Icon,
+  ArrowUp02Icon,
+} from "@hugeicons/core-free-icons";
 import Sortable from "react-native-sortables";
 import type { AnimatedRef } from "react-native-reanimated";
 
@@ -51,7 +55,11 @@ export function CategoryAccordion({
   return (
     <View className="mb-4">
       <View
-        className={bodyVisible ? "flex-row items-center rounded-t-2xl border px-1" : "flex-row items-center rounded-2xl border px-1"}
+        className={
+          bodyVisible
+            ? "flex-row items-center rounded-t-2xl border px-1"
+            : "flex-row items-center rounded-2xl border px-1"
+        }
         style={{ borderColor: theme.border, backgroundColor: theme.card }}
       >
         <TouchableOpacity
@@ -60,7 +68,7 @@ export function CategoryAccordion({
           className="flex-1 flex-row items-center px-3 py-3"
         >
           <Text className="text-base font-bold" style={{ color: theme.text }}>
-            {category.name} {collapsed ? `(${activities.length})` : ''}
+            {category.name} {collapsed ? `(${activities.length})` : ""}
           </Text>
         </TouchableOpacity>
 
@@ -71,17 +79,31 @@ export function CategoryAccordion({
                 onPress={onMoveUp}
                 disabled={!canMoveUp}
                 className="h-8 w-8 items-center justify-center rounded-full"
-                style={{ backgroundColor: theme.surface, opacity: canMoveUp ? 1 : 0.3 }}
+                style={{
+                  backgroundColor: theme.surface,
+                  opacity: canMoveUp ? 1 : 0.3,
+                }}
               >
-                <HugeiconsIcon icon={ArrowUp02Icon} size={16} color={theme.text} />
+                <HugeiconsIcon
+                  icon={ArrowUp02Icon}
+                  size={16}
+                  color={theme.text}
+                />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={onMoveDown}
                 disabled={!canMoveDown}
                 className="h-8 w-8 items-center justify-center rounded-full"
-                style={{ backgroundColor: theme.surface, opacity: canMoveDown ? 1 : 0.3 }}
+                style={{
+                  backgroundColor: theme.surface,
+                  opacity: canMoveDown ? 1 : 0.3,
+                }}
               >
-                <HugeiconsIcon icon={ArrowDown02Icon} size={16} color={theme.text} />
+                <HugeiconsIcon
+                  icon={ArrowDown02Icon}
+                  size={16}
+                  color={theme.text}
+                />
               </TouchableOpacity>
             </>
           )}
@@ -90,15 +112,24 @@ export function CategoryAccordion({
             onPress={() => setCollapsed((prev) => !prev)}
             className="h-8 w-8 items-center justify-center"
           >
-            <View style={{ transform: [{ rotate: collapsed ? "-90deg" : "0deg" }] }}>
-              <HugeiconsIcon icon={ArrowDown01Icon} size={18} color={theme.secondaryText} />
+            <View
+              style={{ transform: [{ rotate: collapsed ? "-90deg" : "0deg" }] }}
+            >
+              <HugeiconsIcon
+                icon={ArrowDown01Icon}
+                size={18}
+                color={theme.secondaryText}
+              />
             </View>
           </TouchableOpacity>
         </View>
       </View>
 
       {bodyVisible && (
-        <View className="rounded-b-2xl p-4" style={{ backgroundColor: theme.surface }}>
+        <View
+          className="rounded-b-2xl p-4"
+          style={{ backgroundColor: theme.surface }}
+        >
           <Sortable.Grid
             data={activities}
             columns={3}
@@ -117,7 +148,9 @@ export function CategoryAccordion({
                 editMode={editMode}
                 logged={loggedIds.has(item.id)}
                 onPress={editMode ? undefined : () => onPressActivity(item)}
-                onLongPress={editMode ? undefined : () => onLongPressActivity(item)}
+                onLongPress={
+                  editMode ? undefined : () => onLongPressActivity(item)
+                }
               />
             )}
           />

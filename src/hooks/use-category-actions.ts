@@ -2,7 +2,10 @@ import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Alert } from "react-native";
 
-import { clearActivitiesCategory, getActivityIdsByCategory } from "@/services/activityService";
+import {
+  clearActivitiesCategory,
+  getActivityIdsByCategory,
+} from "@/services/activityService";
 import { deleteCategory } from "@/services/categoryService";
 import type { Activity } from "@/models/Activity";
 import type { Category } from "@/models/Category";
@@ -13,9 +16,14 @@ type UseCategoryActionsParams = {
   setActivities: Dispatch<SetStateAction<Activity[]>>;
 };
 
-export function useCategoryActions({ userId, setCategories, setActivities }: UseCategoryActionsParams) {
+export function useCategoryActions({
+  userId,
+  setCategories,
+  setActivities,
+}: UseCategoryActionsParams) {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [pendingCategoryDelete, setPendingCategoryDelete] = useState<Category | null>(null);
+  const [pendingCategoryDelete, setPendingCategoryDelete] =
+    useState<Category | null>(null);
   const [categoryActionLoading, setCategoryActionLoading] = useState(false);
 
   const handleCategoryLongPress = (category: Category) => {
@@ -23,7 +31,9 @@ export function useCategoryActions({ userId, setCategories, setActivities }: Use
   };
 
   const handleCategorySaved = (updated: Category) => {
-    setCategories((prev) => prev.map((category) => (category.id === updated.id ? updated : category)));
+    setCategories((prev) =>
+      prev.map((category) => (category.id === updated.id ? updated : category)),
+    );
     setEditingCategory(null);
   };
 
@@ -45,7 +55,11 @@ export function useCategoryActions({ userId, setCategories, setActivities }: Use
       }
       setCategories((prev) => prev.filter((c) => c.id !== categoryId));
       setActivities((prev) =>
-        prev.map((activity) => (affectedIds.includes(activity.id) ? { ...activity, categoryId: null } : activity))
+        prev.map((activity) =>
+          affectedIds.includes(activity.id)
+            ? { ...activity, categoryId: null }
+            : activity,
+        ),
       );
       setPendingCategoryDelete(null);
     } catch (err) {

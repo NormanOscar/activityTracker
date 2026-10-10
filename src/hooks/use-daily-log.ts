@@ -34,7 +34,8 @@ export function useDailyLog(userId: string | undefined, selectedDate: Date) {
     if (!userId) return;
 
     const dateKey = getDateKey(selectedDate);
-    const currentlyLogged = dailyLog?.activityIds.includes(activity.id) ?? false;
+    const currentlyLogged =
+      dailyLog?.activityIds.includes(activity.id) ?? false;
     const nextLogged = !currentlyLogged;
 
     const seq = (seqRef.current[activity.id] ?? 0) + 1;
@@ -64,7 +65,10 @@ export function useDailyLog(userId: string | undefined, selectedDate: Date) {
     }
   };
 
-  const loggedIds = useMemo(() => new Set(dailyLog?.activityIds ?? []), [dailyLog]);
+  const loggedIds = useMemo(
+    () => new Set(dailyLog?.activityIds ?? []),
+    [dailyLog],
+  );
 
   return { dailyLog, loggedIds, toggleLog };
 }

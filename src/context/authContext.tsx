@@ -1,5 +1,4 @@
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
-import { useRouter } from "expo-router";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -59,7 +58,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password,
+    );
     const user = userCredential.user;
 
     await setDoc(doc(db, "users", user.uid), {
@@ -79,7 +82,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   return (
     <AuthContext.Provider
-      value={{ isLoggedIn, isReady, user, logIn, signUp, logOut, resetPassword }}
+      value={{
+        isLoggedIn,
+        isReady,
+        user,
+        logIn,
+        signUp,
+        logOut,
+        resetPassword,
+      }}
     >
       {children}
     </AuthContext.Provider>

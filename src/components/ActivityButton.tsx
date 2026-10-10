@@ -58,13 +58,22 @@ export function ActivityButton({
   const content = (
     <>
       <View className="flex-1 items-center justify-center">
-        {iconData && <HugeiconsIcon icon={iconData} size={45} color={contentColor} />}
+        {iconData && (
+          <HugeiconsIcon icon={iconData} size={45} color={contentColor} />
+        )}
       </View>
-      <Text className="text-lg text-center font-semibold" numberOfLines={2} style={{ color: contentColor }}>
+      <Text
+        className="text-center text-lg font-semibold"
+        numberOfLines={2}
+        style={{ color: contentColor }}
+      >
         {name}
       </Text>
       {showOverlay && (
-        <View className="absolute inset-0 rounded-2xl" style={{ backgroundColor: "rgba(128, 128, 128, 0.35)" }} />
+        <View
+          className="absolute inset-0 rounded-2xl"
+          style={{ backgroundColor: "rgba(128, 128, 128, 0.35)" }}
+        />
       )}
       {isFavorite && (
         <View

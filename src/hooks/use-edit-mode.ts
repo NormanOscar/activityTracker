@@ -58,7 +58,9 @@ export function useEditMode({
     setActivities((prev) => {
       const groupIds = new Set(data.map((activity) => activity.id));
       let i = 0;
-      return prev.map((activity) => (groupIds.has(activity.id) ? data[i++] : activity));
+      return prev.map((activity) =>
+        groupIds.has(activity.id) ? data[i++] : activity,
+      );
     });
   };
 
@@ -68,17 +70,24 @@ export function useEditMode({
     try {
       const orderedCategoryIds = categories.map((category) => category.id);
       await updateCategoryOrder(userId, orderedCategoryIds);
-      setCategories((prev) => prev.map((category, index) => ({ ...category, sortOrder: index })));
+      setCategories((prev) =>
+        prev.map((category, index) => ({ ...category, sortOrder: index })),
+      );
 
       const orderedIds = [
-        ...categories.flatMap((category) => activitiesByCategory.get(category.id)?.map((a) => a.id) ?? []),
+        ...categories.flatMap(
+          (category) =>
+            activitiesByCategory.get(category.id)?.map((a) => a.id) ?? [],
+        ),
         ...uncategorizedActivities.map((a) => a.id),
       ];
       await updateActivityOrder(userId, orderedIds);
       setActivities((prev) => {
         const orderIndex = new Map(orderedIds.map((id, index) => [id, index]));
         return prev.map((activity) =>
-          orderIndex.has(activity.id) ? { ...activity, sortOrder: orderIndex.get(activity.id)! } : activity
+          orderIndex.has(activity.id)
+            ? { ...activity, sortOrder: orderIndex.get(activity.id)! }
+            : activity,
         );
       });
       setEditMode(false);

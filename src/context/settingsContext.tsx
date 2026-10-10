@@ -18,7 +18,11 @@ const SettingsContext = createContext<SettingsContextType>({
   loading: true,
 });
 
-export const SettingsProvider = ({ children }: { children: React.ReactNode }) => {
+export const SettingsProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [theme, setThemeState] = useState<Theme>("light");
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +33,9 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
         if (stored === "light" || stored === "dark") {
           setThemeState(stored);
         } else {
-          setThemeState(Appearance.getColorScheme() === "dark" ? "dark" : "light");
+          setThemeState(
+            Appearance.getColorScheme() === "dark" ? "dark" : "light",
+          );
         }
       } catch (err) {
         console.error("Failed to load theme:", err);
@@ -44,7 +50,7 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
   const setTheme = (next: Theme) => {
     setThemeState(next);
     AsyncStorage.setItem(STORAGE_KEY, next).catch((err) =>
-      console.error("Failed to save theme:", err)
+      console.error("Failed to save theme:", err),
     );
   };
 

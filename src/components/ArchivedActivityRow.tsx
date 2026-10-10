@@ -13,13 +13,18 @@ type ArchivedActivityRowProps = {
   onUnarchive: () => void;
 };
 
-export function ArchivedActivityRow({ activity, onUnarchive }: ArchivedActivityRowProps) {
+export function ArchivedActivityRow({
+  activity,
+  onUnarchive,
+}: ArchivedActivityRowProps) {
   const theme = useTheme();
   const iconData = getIconByName(activity.icon);
 
   const isNoColor = activity.color.id === NO_COLOR_ID;
   const swatchColor = isNoColor ? theme.noColorBackground : activity.color.hex;
-  const iconColor = isNoColor ? theme.text : getContrastColor(activity.color.hex);
+  const iconColor = isNoColor
+    ? theme.text
+    : getContrastColor(activity.color.hex);
 
   return (
     <View
@@ -30,10 +35,16 @@ export function ArchivedActivityRow({ activity, onUnarchive }: ArchivedActivityR
         className="h-12 w-12 items-center justify-center rounded-lg"
         style={{ backgroundColor: swatchColor }}
       >
-        {iconData && <HugeiconsIcon icon={iconData} size={24} color={iconColor} />}
+        {iconData && (
+          <HugeiconsIcon icon={iconData} size={24} color={iconColor} />
+        )}
       </View>
 
-      <Text className="flex-1 text-base font-semibold" style={{ color: theme.text }} numberOfLines={1}>
+      <Text
+        className="flex-1 text-base font-semibold"
+        style={{ color: theme.text }}
+        numberOfLines={1}
+      >
         {activity.name}
       </Text>
 
@@ -42,7 +53,11 @@ export function ArchivedActivityRow({ activity, onUnarchive }: ArchivedActivityR
         className="h-10 w-10 items-center justify-center rounded-full"
         style={{ backgroundColor: theme.background }}
       >
-        <HugeiconsIcon icon={ArchiveRestoreIcon} size={20} color={theme.primary} />
+        <HugeiconsIcon
+          icon={ArchiveRestoreIcon}
+          size={20}
+          color={theme.primary}
+        />
       </TouchableOpacity>
     </View>
   );

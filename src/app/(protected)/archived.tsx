@@ -3,7 +3,11 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ArrowLeft01Icon, SortByDown01Icon, SortByUp01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowLeft01Icon,
+  SortByDown01Icon,
+  SortByUp01Icon,
+} from "@hugeicons/core-free-icons";
 
 import { AuthContext } from "@/context/authContext";
 import { ActivitiesContext } from "@/context/activitiesContext";
@@ -31,11 +35,18 @@ export default function ArchivedActivitiesScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { user } = useContext(AuthContext);
-  const { activities, setActivities, loading: contextLoading, hasFullActivities, loadFullActivities } =
-    useContext(ActivitiesContext);
+  const {
+    activities,
+    setActivities,
+    loading: contextLoading,
+    hasFullActivities,
+    loadFullActivities,
+  } = useContext(ActivitiesContext);
 
   const [sortAscending, setSortAscending] = useState(false);
-  const [pendingUnarchive, setPendingUnarchive] = useState<Activity | null>(null);
+  const [pendingUnarchive, setPendingUnarchive] = useState<Activity | null>(
+    null,
+  );
   const [unarchiving, setUnarchiving] = useState(false);
 
   useEffect(() => {
@@ -45,8 +56,11 @@ export default function ArchivedActivitiesScreen() {
   const loading = contextLoading || !hasFullActivities;
 
   const archivedActivities = useMemo(
-    () => activities.filter((activity) => activity.archivedAt && !activity.deletedAt),
-    [activities]
+    () =>
+      activities.filter(
+        (activity) => activity.archivedAt && !activity.deletedAt,
+      ),
+    [activities],
   );
 
   const groups = useMemo(() => {
@@ -62,7 +76,9 @@ export default function ArchivedActivitiesScreen() {
       }
     }
 
-    return Array.from(byDate.entries()).sort(([a], [b]) => (sortAscending ? a.localeCompare(b) : b.localeCompare(a)));
+    return Array.from(byDate.entries()).sort(([a], [b]) =>
+      sortAscending ? a.localeCompare(b) : b.localeCompare(a),
+    );
   }, [archivedActivities, sortAscending]);
 
   const confirmUnarchive = async () => {
@@ -83,11 +99,22 @@ export default function ArchivedActivitiesScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: theme.background }} edges={["bottom"]}>
+    <SafeAreaView
+      className="flex-1"
+      style={{ backgroundColor: theme.background }}
+      edges={["bottom"]}
+    >
       <PageHeader
         left={
-          <TouchableOpacity onPress={() => router.back()} className="h-10 w-10 items-center justify-center">
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={30} color={theme.text} />
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="h-10 w-10 items-center justify-center"
+          >
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={30}
+              color={theme.text}
+            />
           </TouchableOpacity>
         }
         right={
@@ -125,13 +152,18 @@ export default function ArchivedActivitiesScreen() {
         ) : (
           <>
             {groups.length === 0 && (
-              <Text style={{ color: theme.secondaryText }}>No archived activities.</Text>
+              <Text style={{ color: theme.secondaryText }}>
+                No archived activities.
+              </Text>
             )}
 
             <View className="gap-6">
               {groups.map(([dateKey, items]) => (
                 <View key={dateKey} className="gap-3">
-                  <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                  <Text
+                    className="text-sm font-semibold"
+                    style={{ color: theme.secondaryText }}
+                  >
                     {formatGroupDate(dateKey)}
                   </Text>
 
@@ -154,7 +186,11 @@ export default function ArchivedActivitiesScreen() {
       <ConfirmationModal
         visible={!!pendingUnarchive}
         title="Unarchive activity?"
-        message={pendingUnarchive ? `"${pendingUnarchive.name}" will show up in your activities again.` : undefined}
+        message={
+          pendingUnarchive
+            ? `"${pendingUnarchive.name}" will show up in your activities again.`
+            : undefined
+        }
         confirmLabel={unarchiving ? "Working..." : "Unarchive"}
         confirmColor={Palette.success}
         loading={unarchiving}

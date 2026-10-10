@@ -16,7 +16,12 @@ type EditCategoryModalProps = {
   onRequestDelete: (category: Category) => void;
 };
 
-export function EditCategoryModal({ category, onClose, onSaved, onRequestDelete }: EditCategoryModalProps) {
+export function EditCategoryModal({
+  category,
+  onClose,
+  onSaved,
+  onRequestDelete,
+}: EditCategoryModalProps) {
   const theme = useTheme();
   const { user } = useContext(AuthContext);
 
@@ -54,8 +59,16 @@ export function EditCategoryModal({ category, onClose, onSaved, onRequestDelete 
   };
 
   return (
-    <Modal visible={!!category} animationType="fade" transparent onRequestClose={handleClose}>
-      <Pressable onPress={handleClose} className="flex-1 items-center justify-center bg-black/50 px-6">
+    <Modal
+      visible={!!category}
+      animationType="fade"
+      transparent
+      onRequestClose={handleClose}
+    >
+      <Pressable
+        onPress={handleClose}
+        className="flex-1 items-center justify-center bg-black/50 px-6"
+      >
         <Pressable
           onPress={(e) => e.stopPropagation()}
           className="w-full max-w-sm rounded-2xl p-5"
@@ -69,7 +82,10 @@ export function EditCategoryModal({ category, onClose, onSaved, onRequestDelete 
               onPress={handleClose}
               disabled={saving}
               className="h-9 w-9 items-center justify-center rounded-full"
-              style={{ backgroundColor: theme.surface, opacity: saving ? 0.5 : 1 }}
+              style={{
+                backgroundColor: theme.surface,
+                opacity: saving ? 0.5 : 1,
+              }}
             >
               <HugeiconsIcon icon={Cancel01Icon} size={18} color={theme.text} />
             </Pressable>
@@ -77,7 +93,10 @@ export function EditCategoryModal({ category, onClose, onSaved, onRequestDelete 
 
           <View className="gap-4">
             <View className="gap-2">
-              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+              <Text
+                className="text-sm font-semibold"
+                style={{ color: theme.secondaryText }}
+              >
                 Name
               </Text>
               <TextInput
@@ -86,24 +105,38 @@ export function EditCategoryModal({ category, onClose, onSaved, onRequestDelete 
                 placeholder="e.g. Fitness"
                 placeholderTextColor={theme.secondaryText}
                 className="rounded-xl border px-4 py-3"
-                style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.text }}
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: theme.surface,
+                  color: theme.text,
+                }}
               />
             </View>
 
-            {error ? <Text style={{ color: Palette.danger }}>{error}</Text> : null}
+            {error ? (
+              <Text style={{ color: Palette.danger }}>{error}</Text>
+            ) : null}
 
             <Pressable
               onPress={handleSave}
               disabled={!canSave}
               className="mt-2 items-center rounded-xl py-3"
-              style={{ backgroundColor: canSave ? theme.primary : theme.disabled }}
+              style={{
+                backgroundColor: canSave ? theme.primary : theme.disabled,
+              }}
             >
-              <Text className="font-semibold" style={{ color: canSave ? theme.text : theme.disabledText }}>
+              <Text
+                className="font-semibold"
+                style={{ color: canSave ? theme.text : theme.disabledText }}
+              >
                 {saving ? "Saving..." : "Save"}
               </Text>
             </Pressable>
 
-            <Pressable onPress={() => category && onRequestDelete(category)} className="items-center rounded-xl py-3">
+            <Pressable
+              onPress={() => category && onRequestDelete(category)}
+              className="items-center rounded-xl py-3"
+            >
               <Text className="font-semibold" style={{ color: Palette.danger }}>
                 Delete
               </Text>
