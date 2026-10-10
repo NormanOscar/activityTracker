@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "activity-tracker",
+    "name": "Hobby Lobby",
     "slug": "activity-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -25,14 +25,6 @@
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
-        }
-      ],
       "@react-native-community/datetimepicker"
     ],
     "experiments": {

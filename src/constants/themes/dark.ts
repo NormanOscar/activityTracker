@@ -14,5 +14,5 @@ export const darkTheme: ThemeTokens = {
   disabled: "#2A2A2A",
   disabledText: "#6B6B6B",
   editButton: "#2A2A2A",
-  black: "#000000",
+  loadingSpinner: "#FFFFFF",
 };

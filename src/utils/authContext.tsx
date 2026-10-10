@@ -1,6 +1,5 @@
-// src/utils/authContext.tsx
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
-import { SplashScreen, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -11,8 +10,6 @@ import {
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../config/FirebaseConfig";
-
-SplashScreen.preventAutoHideAsync();
 
 type AuthState = {
   isLoggedIn: boolean;
@@ -79,10 +76,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const resetPassword = async (email: string) => {
     await sendPasswordResetEmail(auth, email);
   };
-
-  useEffect(() => {
-    if (isReady) SplashScreen.hideAsync();
-  }, [isReady]);
 
   return (
     <AuthContext.Provider

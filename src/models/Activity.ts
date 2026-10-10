@@ -6,7 +6,8 @@ export type Activity = {
   color: Color;
   icon: string;
   categoryIds: string[];
-  archived: boolean;
+  createdAt?: Date;
+  archivedAt?: Date;
+  deletedAt?: Date;
   sortOrder: number;
-  createdAt: Date;
 }

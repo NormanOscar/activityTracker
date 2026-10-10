@@ -1,18 +1,20 @@
-// src/components/ActivityButton.tsx
 import { Text, View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Tick02Icon } from "@hugeicons/core-free-icons";
 
 import type { Activity } from "@/models/Activity";
 import { getIconByName } from "@/utils/icons";
 import { getContrastColor } from "@/utils/getContrastColor";
 import { useTheme } from "@/hooks/use-theme";
 import { NO_COLOR_ID } from "@/constants/activityColors";
+import { Palette } from "@/constants/colors";
 
 type ActivityButtonProps = Activity & {
   onPress?: () => void;
   onLongPress?: () => void;
   editMode?: boolean;
+  logged?: boolean;
 };
 
 export function ActivityButton({
@@ -22,6 +24,7 @@ export function ActivityButton({
   onPress,
   onLongPress,
   editMode = false,
+  logged = false,
 }: ActivityButtonProps) {
   const theme = useTheme();
   const iconData = getIconByName(icon);
@@ -30,11 +33,26 @@ export function ActivityButton({
   const backgroundColor = isNoColor ? theme.noColorBackground : color.hex;
   const contentColor = isNoColor ? theme.text : getContrastColor(color.hex);
 
+  const showLoggedBorder = logged && !editMode;
+
+  const borderColor = editMode
+    ? theme.primary
+    : showLoggedBorder
+      ? Palette.success
+      : isNoColor
+        ? theme.border
+        : "transparent";
+
+  const scale = editMode ? 1.03 : logged ? 0.95 : 1;
+
   const style = {
     backgroundColor,
-    borderWidth: editMode ? 2 : isNoColor ? 1 : 0,
-    borderColor: editMode ? theme.primary : theme.border,
+    borderWidth: 2,
+    borderColor,
+    transform: [{ scale }],
   };
+
+  const showOverlay = logged && !editMode;
 
   const content = (
     <>
@@ -44,17 +62,35 @@ export function ActivityButton({
       <Text className="text-lg text-center font-semibold" numberOfLines={2} style={{ color: contentColor }}>
         {name}
       </Text>
+      {showOverlay && (
+        <View className="absolute inset-0 rounded-2xl" style={{ backgroundColor: "rgba(128, 128, 128, 0.35)" }} />
+      )}
+      {logged && (
+        <View
+          className="absolute right-2 top-2 h-6 w-6 items-center justify-center rounded-full"
+          style={{ backgroundColor: Palette.success }}
+        >
+          <HugeiconsIcon icon={Tick02Icon} size={14} color="#FFFFFF" />
+        </View>
+      )}
     </>
   );
 
-  // Sortable.Grid owns the long-press-to-drag gesture for this item internally
-  // while in edit mode — wrapping it in our own Touchable here, even with no
-  // handlers attached, would still compete for the same gesture (the exact issue
-  // that made dragging laggy with the previous library). So edit mode renders a
-  // plain, non-interactive View and leaves all touch handling to the library.
   if (editMode) {
     return (
-      <View className="aspect-square rounded-2xl p-3" style={style}>
+      <View
+        className="aspect-square rounded-2xl p-3"
+        style={[
+          style,
+          {
+            shadowColor: "#000",
+            shadowOpacity: 0.2,
+            shadowRadius: 6,
+            shadowOffset: { width: 0, height: 3 },
+            elevation: 4,
+          },
+        ]}
+      >
         {content}
       </View>
     );
@@ -64,10 +100,6 @@ export function ActivityButton({
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
-      // Plain style values, not className — NativeWind only translates className
-      // into real styles for components it explicitly patches, and this Pressable
-      // (from react-native-gesture-handler, not core React Native) isn't one of
-      // them, so the aspect-ratio/radius/padding classes were silently no-ops here.
       style={({ pressed }) => [
         { aspectRatio: 1, borderRadius: 16, padding: 12 },
         style,

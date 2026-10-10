@@ -3,7 +3,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { ArrowLeft01Icon, Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
+import { ArchiveIcon, ArrowLeft01Icon, ArrowRight01Icon, Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 
 import { AuthContext } from "@/utils/authContext";
 import { useSettings } from "@/utils/settingsContext";
@@ -33,6 +33,18 @@ export default function SettingsScreen() {
         </Text>
 
         <View className="gap-4">
+          <TouchableOpacity
+            onPress={() => router.push("/archived")}
+            className="flex-row items-center gap-3 rounded-lg border p-3"
+            style={{ borderColor: theme.border, backgroundColor: theme.surface }}
+          >
+            <HugeiconsIcon icon={ArchiveIcon} size={20} color={theme.text} />
+            <Text className="flex-1 font-semibold" style={{ color: theme.text }}>
+              Archived Activities
+            </Text>
+            <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={theme.secondaryText} />
+          </TouchableOpacity>
+          
           <View className="rounded-lg border p-3" style={{ borderColor: theme.border, backgroundColor: theme.surface }}>
             <Text className="mb-3 text-m font-semibold" style={{ color: theme.secondaryText }}>
               Appearance

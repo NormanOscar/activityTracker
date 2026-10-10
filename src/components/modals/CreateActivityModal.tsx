@@ -8,35 +8,42 @@ import { AuthContext } from "@/utils/authContext";
 import { Palette } from "@/constants/colors";
 import { ColorSelect } from "@/components/inputs/ColorSelect";
 import { IconSelect } from "@/components/inputs/IconSelect";
+import { DateField } from "@/components/inputs/DateField";
 import { createActivity } from "@/services/activityService";
+import { startOfDay } from "@/utils/dateKey";
 import type { Color } from "@/models/Colors";
 
 type CreateActivityModalProps = {
   visible: boolean;
+  createdAt: Date;
   onClose: () => void;
   onCreated?: (activityId: string) => void;
 };
 
-export function CreateActivityModal({ visible, onClose, onCreated }: CreateActivityModalProps) {
+export function CreateActivityModal({
+  visible,
+  createdAt: defaultCreatedAt,
+  onClose,
+  onCreated,
+}: CreateActivityModalProps) {
   const theme = useTheme();
   const { user } = useContext(AuthContext);
 
   const [name, setName] = useState("");
   const [color, setColor] = useState<Color | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState(defaultCreatedAt);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Re-syncs every time the modal opens, not just on close — Modal keeps this
-  // component mounted while hidden, so without this a value from a previous
-  // session could still be sitting in state the next time it's opened.
   useEffect(() => {
     if (!visible) return;
     setName("");
     setColor(null);
     setIcon(null);
+    setStartDate(defaultCreatedAt);
     setError("");
-  }, [visible]);
+  }, [visible, defaultCreatedAt]);
 
   const canSave = name.trim().length > 0 && color !== null && icon !== null && !saving;
 
@@ -51,6 +58,7 @@ export function CreateActivityModal({ visible, onClose, onCreated }: CreateActiv
         color,
         icon,
         categoryIds: [],
+        createdAt: startOfDay(startDate),
       });
       onCreated?.(id);
       onClose();
@@ -110,6 +118,13 @@ export function CreateActivityModal({ visible, onClose, onCreated }: CreateActiv
                 </Text>
                 <IconSelect value={icon} onChange={setIcon} />
               </View>
+            </View>
+
+            <View className="gap-2">
+              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                Start date
+              </Text>
+              <DateField value={startDate} onChange={setStartDate} />
             </View>
 
             {error ? <Text style={{ color: Palette.danger }}>{error}</Text> : null}

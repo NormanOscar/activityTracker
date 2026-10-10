@@ -12,5 +12,5 @@ export const lightTheme = {
   disabled: "#E0E0E0",
   disabledText: "#9CA3AF",
   editButton: "#FFFFFF",
-  black: "#000000",
+  loadingSpinner: "#000000",
 };

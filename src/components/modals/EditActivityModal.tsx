@@ -8,7 +8,9 @@ import { AuthContext } from "@/utils/authContext";
 import { Palette } from "@/constants/colors";
 import { ColorSelect } from "@/components/inputs/ColorSelect";
 import { IconSelect } from "@/components/inputs/IconSelect";
+import { DateField } from "@/components/inputs/DateField";
 import { updateActivity } from "@/services/activityService";
+import { startOfDay } from "@/utils/dateKey";
 import type { Activity } from "@/models/Activity";
 import type { Color } from "@/models/Colors";
 
@@ -16,27 +18,33 @@ type EditActivityModalProps = {
   activity: Activity | null;
   onClose: () => void;
   onSaved?: (activity: Activity) => void;
+  onRequestArchive: (activity: Activity) => void;
   onRequestDelete: (activity: Activity) => void;
 };
 
-export function EditActivityModal({ activity, onClose, onSaved, onRequestDelete }: EditActivityModalProps) {
+export function EditActivityModal({
+  activity,
+  onClose,
+  onSaved,
+  onRequestArchive,
+  onRequestDelete,
+}: EditActivityModalProps) {
   const theme = useTheme();
   const { user } = useContext(AuthContext);
 
   const [name, setName] = useState("");
   const [color, setColor] = useState<Color | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState(() => startOfDay(new Date()));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Re-syncs every time a (different) activity is opened for editing — Modal
-  // keeps this mounted while hidden, so without this a previous edit's values
-  // could still be sitting in state the next time it opens.
   useEffect(() => {
     if (!activity) return;
     setName(activity.name);
     setColor(activity.color);
     setIcon(activity.icon);
+    setStartDate(activity.createdAt ?? startOfDay(new Date()));
     setError("");
   }, [activity]);
 
@@ -48,8 +56,9 @@ export function EditActivityModal({ activity, onClose, onSaved, onRequestDelete 
     setSaving(true);
     setError("");
     try {
-      const updated: Activity = { ...activity, name: name.trim(), color, icon };
-      await updateActivity(user.uid, activity.id, { name: updated.name, color, icon });
+      const createdAt = startOfDay(startDate);
+      const updated: Activity = { ...activity, name: name.trim(), color, icon, createdAt };
+      await updateActivity(user.uid, activity.id, { name: updated.name, color, icon, createdAt });
       onSaved?.(updated);
       onClose();
     } catch (e: any) {
@@ -110,6 +119,13 @@ export function EditActivityModal({ activity, onClose, onSaved, onRequestDelete 
               </View>
             </View>
 
+            <View className="gap-2">
+              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                Start date
+              </Text>
+              <DateField value={startDate} onChange={setStartDate} />
+            </View>
+
             {error ? <Text style={{ color: Palette.danger }}>{error}</Text> : null}
 
             <Pressable
@@ -123,14 +139,26 @@ export function EditActivityModal({ activity, onClose, onSaved, onRequestDelete 
               </Text>
             </Pressable>
 
-            <Pressable
-              onPress={() => activity && onRequestDelete(activity)}
-              className="items-center rounded-xl py-3"
-            >
-              <Text className="font-semibold" style={{ color: Palette.danger }}>
-                Delete
-              </Text>
-            </Pressable>
+            <View className="flex-row gap-3">
+              <Pressable
+                onPress={() => activity && onRequestArchive(activity)}
+                className="flex-1 items-center rounded-xl border py-3"
+                style={{ borderColor: theme.border }}
+              >
+                <Text className="font-semibold" style={{ color: theme.text }}>
+                  Archive
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => activity && onRequestDelete(activity)}
+                className="flex-1 items-center rounded-xl py-3"
+              >
+                <Text className="font-semibold" style={{ color: Palette.danger }}>
+                  Delete
+                </Text>
+              </Pressable>
+            </View>
           </View>
         </Pressable>
       </Pressable>
