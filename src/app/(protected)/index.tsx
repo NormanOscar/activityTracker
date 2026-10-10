@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, RefreshControl, Text, TouchableOpacity, View } from "react-native";
+import { Alert, RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import { ScrollView as GestureHandlerScrollView } from "react-native-gesture-handler";
 import Animated, { useAnimatedRef } from "react-native-reanimated";
 import { useRouter } from "expo-router";
@@ -12,6 +12,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { useTodayDate } from "@/hooks/use-today-date";
 import { PageHeader } from "@/components/PageHeader";
 import { AddMenu } from "@/components/AddMenu";
+import { SkeletonLoader } from "@/components/SkeletonLoader";
 import { CategoryAccordion } from "@/components/CategoryAccordion";
 import { ActivityButton } from "@/components/ActivityButton";
 import { CreateActivityModal } from "@/components/modals/CreateActivityModal";
@@ -40,6 +41,7 @@ export default function HomeScreen() {
   const [selectedDate, setSelectedDate] = useState(todayDate);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showNewActivity, setShowNewActivity] = useState(false);
@@ -57,7 +59,6 @@ export default function HomeScreen() {
   const [actionLoading, setActionLoading] = useState(false);
 
   const [dailyLog, setDailyLog] = useState<DailyLog | null>(null);
-  const [logLoading, setLogLoading] = useState(false);
   const logRequestIdRef = useRef(0);
   const logSeqRef = useRef<Record<string, number>>({});
 
@@ -117,8 +118,8 @@ export default function HomeScreen() {
   }, [user]);
 
   useEffect(() => {
-    loadActivities();
-    loadCategories();
+    setLoading(true);
+    Promise.all([loadActivities(), loadCategories()]).finally(() => setLoading(false));
   }, [loadActivities, loadCategories]);
 
   useEffect(() => {
@@ -127,7 +128,6 @@ export default function HomeScreen() {
     const requestId = ++logRequestIdRef.current;
 
     setDailyLog(null);
-    setLogLoading(true);
 
     getDailyLog(user.uid, dateKey)
       .then((log) => {
@@ -138,9 +138,6 @@ export default function HomeScreen() {
         if (requestId !== logRequestIdRef.current) return;
         console.error("Failed to load daily log:", err);
         setDailyLog({ date: dateKey, activityIds: [] });
-      })
-      .finally(() => {
-        if (requestId === logRequestIdRef.current) setLogLoading(false);
       });
   }, [user, selectedDate]);
 
@@ -314,6 +311,7 @@ export default function HomeScreen() {
         <AnimatedScrollView
           ref={scrollableRef}
           className="flex-1 px-4"
+          contentContainerStyle={{ paddingBottom: 105 }}
           refreshControl={
             editMode ? undefined : (
               <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.loadingSpinner} />
@@ -324,71 +322,87 @@ export default function HomeScreen() {
             <Text className="text-2xl font-bold" style={{ color: theme.text }}>
               Activities
             </Text>
-            {logLoading && <ActivityIndicator size="small" color={theme.secondaryText} />}
           </View>
 
-          {visibleActivities.length === 0 && (
-            <Text className="mb-4" style={{ color: theme.secondaryText }}>No activities yet.</Text>
-          )}
-
-          <CategoryAccordion
-            category={FAVORITES_SECTION}
-            activities={favoriteActivities}
-            editMode={editMode}
-            loggedIds={loggedIds}
-            scrollableRef={scrollableRef}
-            onPressActivity={handleToggleLog}
-            onLongPressActivity={handleActivityLongPress}
-            onDragEnd={(_categoryId, data) => handleActivityDragEnd(data)}
-            sortable={false}
-          />
-
-          {categories.map((category, index) => (
-            <CategoryAccordion
-              key={category.id}
-              category={category}
-              activities={activitiesByCategory.get(category.id) ?? []}
-              editMode={editMode}
-              loggedIds={loggedIds}
-              scrollableRef={scrollableRef}
-              onPressActivity={handleToggleLog}
-              onLongPressActivity={handleActivityLongPress}
-              onDragEnd={(_categoryId, data) => handleActivityDragEnd(data)}
-              onMoveUp={() => moveCategory(category.id, -1)}
-              onMoveDown={() => moveCategory(category.id, 1)}
-              canMoveUp={index > 0}
-              canMoveDown={index < categories.length - 1}
-            />
-          ))}
-
-          {uncategorizedActivities.length > 0 && (
-            <View className="mb-6">
-              <Text className="mb-3 text-base font-bold" style={{ color: theme.text }}>
-                No category
-              </Text>
-              <Sortable.Grid
-                data={uncategorizedActivities}
-                columns={3}
-                rowGap={12}
-                columnGap={12}
-                strategy="insert"
-                sortEnabled={editMode}
-                scrollableRef={scrollableRef}
-                activeItemScale={1.05}
-                activeItemShadowOpacity={0.25}
-                keyExtractor={(item) => item.id}
-                onDragEnd={({ data }) => handleActivityDragEnd(data)}
-                renderItem={({ item }) => (
-                  <ActivityButton
-                    {...item}
-                    editMode={editMode}
-                    logged={loggedIds.has(item.id)}
-                    onPress={editMode ? undefined : () => handleToggleLog(item)}
-                    onLongPress={editMode ? undefined : () => handleActivityLongPress(item)}
-                  />
-                )}
-              />
+          {loading ? (
+            <View>
+              {[0, 1].map((i) => (
+                <View key={i} className="mb-4">
+                  <SkeletonLoader width={120} height={24} borderRadius={6} className="mb-3" />
+                  <View className="flex-row flex-wrap gap-3">
+                    {[0, 1, 2].map((j) => (
+                      <SkeletonLoader key={j} width="31%" height={100} borderRadius={16} />
+                    ))}
+                  </View>
+                </View>
+              ))}
             </View>
+          ) : (
+            <>
+              {visibleActivities.length === 0 && (
+                <Text className="mb-4" style={{ color: theme.secondaryText }}>No activities yet.</Text>
+              )}
+
+              <CategoryAccordion
+                category={FAVORITES_SECTION}
+                activities={favoriteActivities}
+                editMode={editMode}
+                loggedIds={loggedIds}
+                scrollableRef={scrollableRef}
+                onPressActivity={handleToggleLog}
+                onLongPressActivity={handleActivityLongPress}
+                onDragEnd={(_categoryId, data) => handleActivityDragEnd(data)}
+                sortable={false}
+              />
+
+              {categories.map((category, index) => (
+                <CategoryAccordion
+                  key={category.id}
+                  category={category}
+                  activities={activitiesByCategory.get(category.id) ?? []}
+                  editMode={editMode}
+                  loggedIds={loggedIds}
+                  scrollableRef={scrollableRef}
+                  onPressActivity={handleToggleLog}
+                  onLongPressActivity={handleActivityLongPress}
+                  onDragEnd={(_categoryId, data) => handleActivityDragEnd(data)}
+                  onMoveUp={() => moveCategory(category.id, -1)}
+                  onMoveDown={() => moveCategory(category.id, 1)}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < categories.length - 1}
+                />
+              ))}
+
+              {uncategorizedActivities.length > 0 && (
+                <View className="mb-6">
+                  <Text className="mb-3 text-base font-bold" style={{ color: theme.text }}>
+                    No category
+                  </Text>
+                  <Sortable.Grid
+                    data={uncategorizedActivities}
+                    columns={3}
+                    rowGap={12}
+                    columnGap={12}
+                    strategy="insert"
+                    sortEnabled={editMode}
+                    scrollableRef={scrollableRef}
+                    activeItemScale={1.05}
+                    activeItemShadowOpacity={0.25}
+                    keyExtractor={(item) => item.id}
+                    onDragEnd={({ data }) => handleActivityDragEnd(data)}
+                    renderItem={({ item }) => (
+                      <ActivityButton
+                        {...item}
+                        editMode={editMode}
+                        logged={loggedIds.has(item.id)}
+                        onPress={editMode ? undefined : () => handleToggleLog(item)}
+                        onLongPress={editMode ? undefined : () => handleActivityLongPress(item)}
+                      />
+                    )}
+                  />
+                </View>
+              )}
+            </>
           )}
         </AnimatedScrollView>
       </View>

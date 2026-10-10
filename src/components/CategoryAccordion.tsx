@@ -42,7 +42,7 @@ export function CategoryAccordion({
   sortable = true,
 }: CategoryAccordionProps) {
   const theme = useTheme();
-  const [collapsed, setCollapsed] = useState(() => activities.length === 0);
+  const [collapsed, setCollapsed] = useState(false);
   const showReorderControls = editMode && (onMoveUp || onMoveDown);
   const bodyVisible = !collapsed && activities.length > 0;
 

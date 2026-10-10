@@ -8,6 +8,7 @@ import { ArrowLeft01Icon, SortByDown01Icon, SortByUp01Icon } from "@hugeicons/co
 import { AuthContext } from "@/utils/authContext";
 import { useTheme } from "@/hooks/use-theme";
 import { PageHeader } from "@/components/PageHeader";
+import { SkeletonLoader } from "@/components/SkeletonLoader";
 import { ArchivedActivityRow } from "@/components/ArchivedActivityRow";
 import { getActivities, unarchiveActivity } from "@/services/activityService";
 import { getDateKey } from "@/utils/dateKey";
@@ -30,6 +31,7 @@ export default function ArchivedActivitiesScreen() {
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [sortAscending, setSortAscending] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadArchived = useCallback(async () => {
     if (!user) return;
@@ -42,7 +44,8 @@ export default function ArchivedActivitiesScreen() {
   }, [user]);
 
   useEffect(() => {
-    loadArchived();
+    setLoading(true);
+    loadArchived().finally(() => setLoading(false));
   }, [loadArchived]);
 
   const groups = useMemo(() => {
@@ -99,29 +102,46 @@ export default function ArchivedActivitiesScreen() {
           Archived Activities
         </Text>
 
-        {groups.length === 0 && (
-          <Text style={{ color: theme.secondaryText }}>No archived activities.</Text>
-        )}
-
-        <View className="gap-6">
-          {groups.map(([dateKey, items]) => (
-            <View key={dateKey} className="gap-3">
-              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
-                {formatGroupDate(dateKey)}
-              </Text>
-
-              <View className="gap-3">
-                {items.map((activity) => (
-                  <ArchivedActivityRow
-                    key={activity.id}
-                    activity={activity}
-                    onUnarchive={() => handleUnarchive(activity)}
-                  />
-                ))}
+        {loading ? (
+          <View className="gap-6">
+            {[0, 1].map((i) => (
+              <View key={i} className="gap-3">
+                <SkeletonLoader width={160} height={16} borderRadius={6} />
+                <View className="gap-3">
+                  {[0, 1].map((j) => (
+                    <SkeletonLoader key={j} height={64} borderRadius={12} />
+                  ))}
+                </View>
               </View>
+            ))}
+          </View>
+        ) : (
+          <>
+            {groups.length === 0 && (
+              <Text style={{ color: theme.secondaryText }}>No archived activities.</Text>
+            )}
+
+            <View className="gap-6">
+              {groups.map(([dateKey, items]) => (
+                <View key={dateKey} className="gap-3">
+                  <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                    {formatGroupDate(dateKey)}
+                  </Text>
+
+                  <View className="gap-3">
+                    {items.map((activity) => (
+                      <ArchivedActivityRow
+                        key={activity.id}
+                        activity={activity}
+                        onUnarchive={() => handleUnarchive(activity)}
+                      />
+                    ))}
+                  </View>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
