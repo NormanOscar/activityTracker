@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Modal, Pressable, Text, TextInput, View } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Cancel01Icon, StarIcon } from "@hugeicons/core-free-icons";
+import * as Haptics from "expo-haptics";
 
 import { useTheme } from "@/hooks/use-theme";
 import { AuthContext } from "@/context/authContext";
@@ -19,6 +20,7 @@ import type { Category } from "@/models/Category";
 type EditActivityModalProps = {
   activity: Activity | null;
   categories: Category[];
+  activities: Activity[];
   onClose: () => void;
   onSaved?: (activity: Activity) => void;
   onRequestArchive: (activity: Activity) => void;
@@ -28,6 +30,7 @@ type EditActivityModalProps = {
 export function EditActivityModal({
   activity,
   categories,
+  activities,
   onClose,
   onSaved,
   onRequestArchive,
@@ -55,6 +58,12 @@ export function EditActivityModal({
     setStartDate(activity.createdAt ?? startOfDay(new Date()));
     setError("");
   }, [activity]);
+
+  const isDuplicateName = activities.some(
+    (a) =>
+      a.id !== activity?.id &&
+      a.name.trim().toLowerCase() === name.trim().toLowerCase(),
+  );
 
   const canSave =
     name.trim().length > 0 && color !== null && icon !== null && !saving;
@@ -127,7 +136,10 @@ export function EditActivityModal({
             </Text>
             <View className="flex-row items-center gap-2">
               <Pressable
-                onPress={() => setIsFavorite((prev) => !prev)}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setIsFavorite((prev) => !prev);
+                }}
                 className="h-9 w-9 items-center justify-center rounded-full"
                 style={{ backgroundColor: theme.surface }}
               >
@@ -175,6 +187,11 @@ export function EditActivityModal({
                   color: theme.text,
                 }}
               />
+              {isDuplicateName && (
+                <Text className="text-xs" style={{ color: Palette.danger }}>
+                  An activity named &quot;{name.trim()}&quot; already exists.
+                </Text>
+              )}
             </View>
 
             <View className="gap-2">

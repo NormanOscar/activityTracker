@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { RefreshControl, Text, TouchableOpacity, View } from "react-native";
+import * as Haptics from "expo-haptics";
 import { ScrollView as GestureHandlerScrollView } from "react-native-gesture-handler";
 import Animated, { useAnimatedRef } from "react-native-reanimated";
 import { useRouter } from "expo-router";
@@ -164,7 +165,13 @@ export default function HomeScreen() {
     confirmDeleteCategory,
   } = useCategoryActions({ userId: user?.uid, setCategories, setActivities });
 
+  const isViewingToday = getDateKey(selectedDate) === getDateKey(todayDate);
+  const loggedTodayCount = visibleActivities.filter((activity) =>
+    loggedIds.has(activity.id),
+  ).length;
+
   const handleRefresh = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setRefreshing(true);
     try {
       await Promise.all([loadActivities(), loadCategories()]);
@@ -213,10 +220,19 @@ export default function HomeScreen() {
             )
           }
         >
-          <View className="mb-4 flex-row items-center gap-2">
+          <View className="mb-4">
             <Text className="text-2xl font-bold" style={{ color: theme.text }}>
               Activities
             </Text>
+            {!loading && visibleActivities.length > 0 && (
+              <Text
+                className="mt-1 text-sm"
+                style={{ color: theme.secondaryText }}
+              >
+                {loggedTodayCount} of {visibleActivities.length} logged
+                {isViewingToday ? " today" : ""}
+              </Text>
+            )}
           </View>
 
           {loading ? (
@@ -401,6 +417,7 @@ export default function HomeScreen() {
         visible={showNewActivity}
         createdAt={startOfDay(selectedDate)}
         categories={categories}
+        activities={activities}
         onClose={() => setShowNewActivity(false)}
         onCreated={loadActivities}
       />
@@ -414,6 +431,7 @@ export default function HomeScreen() {
       <EditActivityModal
         activity={editingActivity}
         categories={categories}
+        activities={activities}
         onClose={() => setEditingActivity(null)}
         onSaved={handleActivitySaved}
         onRequestArchive={handleRequestArchive}

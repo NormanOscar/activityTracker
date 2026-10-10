@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Alert } from "react-native";
+import * as Haptics from "expo-haptics";
 
 import { updateActivityOrder } from "@/services/activityService";
 import { updateCategoryOrder } from "@/services/categoryService";
@@ -32,6 +33,7 @@ export function useEditMode({
   const originalCategoryOrderRef = useRef<Category[]>([]);
 
   const enterEditMode = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     originalOrderRef.current = activities;
     originalCategoryOrderRef.current = categories;
     setEditMode(true);

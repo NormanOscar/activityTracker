@@ -11,6 +11,7 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.oscarnorman.activitytracker",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -31,6 +32,19 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/aa13a111-e47c-4ecc-81fb-3c7921e73d87"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "aa13a111-e47c-4ecc-81fb-3c7921e73d87"
+      }
+    },
+    "owner": "oscarnorman"
   }
 }

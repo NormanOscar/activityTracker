@@ -1,4 +1,5 @@
 import { Modal, Pressable, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
 
 import { useTheme } from "@/hooks/use-theme";
 
@@ -26,6 +27,11 @@ export function ConfirmationModal({
   onCancel,
 }: ConfirmationModalProps) {
   const theme = useTheme();
+
+  const handleConfirm = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onConfirm();
+  };
 
   return (
     <Modal
@@ -66,7 +72,7 @@ export function ConfirmationModal({
               </Text>
             </Pressable>
             <Pressable
-              onPress={onConfirm}
+              onPress={handleConfirm}
               disabled={loading}
               className="flex-1 items-center rounded-xl py-4"
               style={{

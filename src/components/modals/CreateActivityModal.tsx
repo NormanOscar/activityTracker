@@ -12,6 +12,7 @@ import { DateField } from "@/components/inputs/DateField";
 import { CategorySelect } from "@/components/inputs/CategorySelect";
 import { createActivity } from "@/services/activityService";
 import { startOfDay } from "@/utils/dateKey";
+import type { Activity } from "@/models/Activity";
 import type { Color } from "@/models/Colors";
 import type { Category } from "@/models/Category";
 
@@ -19,6 +20,7 @@ type CreateActivityModalProps = {
   visible: boolean;
   createdAt: Date;
   categories: Category[];
+  activities: Activity[];
   onClose: () => void;
   onCreated?: (activityId: string) => void;
 };
@@ -27,6 +29,7 @@ export function CreateActivityModal({
   visible,
   createdAt: defaultCreatedAt,
   categories,
+  activities,
   onClose,
   onCreated,
 }: CreateActivityModalProps) {
@@ -50,6 +53,10 @@ export function CreateActivityModal({
     setStartDate(defaultCreatedAt);
     setError("");
   }, [visible, defaultCreatedAt]);
+
+  const isDuplicateName = activities.some(
+    (a) => a.name.trim().toLowerCase() === name.trim().toLowerCase(),
+  );
 
   const canSave =
     name.trim().length > 0 && color !== null && icon !== null && !saving;
@@ -134,6 +141,11 @@ export function CreateActivityModal({
                   color: theme.text,
                 }}
               />
+              {isDuplicateName && (
+                <Text className="text-xs" style={{ color: Palette.danger }}>
+                  An activity named &quot;{name.trim()}&quot; already exists.
+                </Text>
+              )}
             </View>
 
             <View className="gap-2">

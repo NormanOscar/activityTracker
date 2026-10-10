@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
+import * as Haptics from "expo-haptics";
 
 import { getDailyLog, toggleActivityLog } from "@/services/logService";
 import { getDateKey } from "@/utils/dateKey";
@@ -32,6 +33,8 @@ export function useDailyLog(userId: string | undefined, selectedDate: Date) {
 
   const toggleLog = async (activity: Activity) => {
     if (!userId) return;
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     const dateKey = getDateKey(selectedDate);
     const currentlyLogged =
