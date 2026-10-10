@@ -18,11 +18,19 @@ import { ActivityButton } from "@/components/ActivityButton";
 import { CreateActivityModal } from "@/components/modals/CreateActivityModal";
 import { EditActivityModal } from "@/components/modals/EditActivityModal";
 import { NewCategoryModal } from "@/components/modals/NewCategoryModal";
+import { EditCategoryModal } from "@/components/modals/EditCategoryModal";
 import { ConfirmationModal } from "@/components/modals/ConfirmationModal";
-import { archiveActivity, deleteActivity, getActivities, updateActivityOrder } from "@/services/activityService";
-import { getCategories, updateCategoryOrder } from "@/services/categoryService";
+import {
+  archiveActivity,
+  clearActivitiesCategory,
+  deleteActivity,
+  getActivities,
+  updateActivityOrder,
+} from "@/services/activityService";
+import { deleteCategory, getCategories, updateCategoryOrder } from "@/services/categoryService";
 import { getDailyLog, toggleActivityLog } from "@/services/logService";
 import { getDateKey, startOfDay } from "@/utils/dateKey";
+import { Palette } from "@/constants/colors";
 import type { Activity } from "@/models/Activity";
 import type { Category } from "@/models/Category";
 import type { DailyLog } from "@/models/DailyLog";
@@ -58,6 +66,10 @@ export default function HomeScreen() {
   );
   const [actionLoading, setActionLoading] = useState(false);
 
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [pendingCategoryDelete, setPendingCategoryDelete] = useState<Category | null>(null);
+  const [categoryActionLoading, setCategoryActionLoading] = useState(false);
+
   const [dailyLog, setDailyLog] = useState<DailyLog | null>(null);
   const logRequestIdRef = useRef(0);
   const logSeqRef = useRef<Record<string, number>>({});
@@ -81,7 +93,7 @@ export default function HomeScreen() {
     for (const category of categories) {
       map.set(
         category.id,
-        visibleActivities.filter((activity) => activity.categoryId === category.id)
+        visibleActivities.filter((activity) => !activity.isFavorite && activity.categoryId === category.id)
       );
     }
     return map;
@@ -93,7 +105,7 @@ export default function HomeScreen() {
   );
 
   const uncategorizedActivities = useMemo(
-    () => visibleActivities.filter((activity) => !activity.categoryId),
+    () => visibleActivities.filter((activity) => !activity.isFavorite && !activity.categoryId),
     [visibleActivities]
   );
 
@@ -289,6 +301,44 @@ export default function HomeScreen() {
     setEditingActivity(null);
   };
 
+  const handleCategoryLongPress = (category: Category) => {
+    setEditingCategory(category);
+  };
+
+  const handleCategorySaved = (updated: Category) => {
+    setCategories((prev) => prev.map((category) => (category.id === updated.id ? updated : category)));
+    setEditingCategory(null);
+  };
+
+  const handleRequestCategoryDelete = (category: Category) => {
+    setEditingCategory(null);
+    setPendingCategoryDelete(category);
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!user || !pendingCategoryDelete) return;
+    const categoryId = pendingCategoryDelete.id;
+
+    setCategoryActionLoading(true);
+    try {
+      const affectedIds = activities.filter((a) => a.categoryId === categoryId).map((a) => a.id);
+      await deleteCategory(user.uid, categoryId);
+      if (affectedIds.length > 0) {
+        await clearActivitiesCategory(user.uid, affectedIds);
+      }
+      setCategories((prev) => prev.filter((c) => c.id !== categoryId));
+      setActivities((prev) =>
+        prev.map((activity) => (affectedIds.includes(activity.id) ? { ...activity, categoryId: undefined } : activity))
+      );
+      setPendingCategoryDelete(null);
+    } catch (err) {
+      console.error("Failed to delete category:", err);
+      Alert.alert("Couldn't delete category", "Please try again.");
+    } finally {
+      setCategoryActionLoading(false);
+    }
+  };
+
   const loggedIds = useMemo(() => new Set(dailyLog?.activityIds ?? []), [dailyLog]);
 
   return (
@@ -343,17 +393,19 @@ export default function HomeScreen() {
                 <Text className="mb-4" style={{ color: theme.secondaryText }}>No activities yet.</Text>
               )}
 
-              <CategoryAccordion
-                category={FAVORITES_SECTION}
-                activities={favoriteActivities}
-                editMode={editMode}
-                loggedIds={loggedIds}
-                scrollableRef={scrollableRef}
-                onPressActivity={handleToggleLog}
-                onLongPressActivity={handleActivityLongPress}
-                onDragEnd={(_categoryId, data) => handleActivityDragEnd(data)}
-                sortable={false}
-              />
+              {favoriteActivities.length > 0 && (
+                <CategoryAccordion
+                  category={FAVORITES_SECTION}
+                  activities={favoriteActivities}
+                  editMode={editMode}
+                  loggedIds={loggedIds}
+                  scrollableRef={scrollableRef}
+                  onPressActivity={handleToggleLog}
+                  onLongPressActivity={handleActivityLongPress}
+                  onDragEnd={(_categoryId, data) => handleActivityDragEnd(data)}
+                  sortable={false}
+                />
+              )}
 
               {categories.map((category, index) => (
                 <CategoryAccordion
@@ -370,6 +422,7 @@ export default function HomeScreen() {
                   onMoveDown={() => moveCategory(category.id, 1)}
                   canMoveUp={index > 0}
                   canMoveDown={index < categories.length - 1}
+                  onLongPressHeader={() => handleCategoryLongPress(category)}
                 />
               ))}
 
@@ -481,6 +534,13 @@ export default function HomeScreen() {
         onRequestDelete={handleRequestDelete}
       />
 
+      <EditCategoryModal
+        category={editingCategory}
+        onClose={() => setEditingCategory(null)}
+        onSaved={handleCategorySaved}
+        onRequestDelete={handleRequestCategoryDelete}
+      />
+
       <ConfirmationModal
         visible={!!pendingAction}
         title={pendingAction?.type === "archive" ? "Archive activity?" : "Delete activity?"}
@@ -490,9 +550,23 @@ export default function HomeScreen() {
             : undefined
         }
         confirmLabel={actionLoading ? "Working..." : pendingAction?.type === "archive" ? "Archive" : "Delete"}
-        destructive={pendingAction?.type === "delete"}
+        confirmColor={pendingAction?.type === "delete" ? Palette.danger : theme.primary}
         onConfirm={confirmPendingAction}
         onCancel={() => setPendingAction(null)}
+      />
+
+      <ConfirmationModal
+        visible={!!pendingCategoryDelete}
+        title="Delete category?"
+        message={
+          pendingCategoryDelete
+            ? `"${pendingCategoryDelete.name}" will be deleted permanently. Activities in it will be moved to No category.`
+            : undefined
+        }
+        confirmLabel={categoryActionLoading ? "Working..." : "Delete"}
+        confirmColor={Palette.danger}
+        onConfirm={confirmDeleteCategory}
+        onCancel={() => setPendingCategoryDelete(null)}
       />
     </View>
   );

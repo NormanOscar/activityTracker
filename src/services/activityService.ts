@@ -77,6 +77,17 @@ export async function unarchiveActivity(userId: string, activityId: string): Pro
   });
 }
 
+export async function clearActivitiesCategory(userId: string, activityIds: string[]): Promise<void> {
+  if (activityIds.length === 0) return;
+
+  const batch = writeBatch(FIREBASE_DB);
+  activityIds.forEach((activityId) => {
+    batch.update(doc(FIREBASE_DB, "users", userId, "activities", activityId), { categoryId: deleteField() });
+  });
+
+  await batch.commit();
+}
+
 export async function updateActivityOrder(userId: string, orderedIds: string[]): Promise<void> {
   const batch = writeBatch(FIREBASE_DB);
 

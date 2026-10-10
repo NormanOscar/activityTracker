@@ -1,7 +1,6 @@
 import { Modal, Pressable, Text, View } from "react-native";
 
 import { useTheme } from "@/hooks/use-theme";
-import { Palette } from "@/constants/colors";
 
 type ConfirmationModalProps = {
   visible: boolean;
@@ -9,7 +8,7 @@ type ConfirmationModalProps = {
   message?: string;
   confirmLabel?: string;
   cancelLabel?: string;
-  destructive?: boolean;
+  confirmColor?: string;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -20,7 +19,7 @@ export function ConfirmationModal({
   message,
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
-  destructive = false,
+  confirmColor,
   onConfirm,
   onCancel,
 }: ConfirmationModalProps) {
@@ -43,10 +42,10 @@ export function ConfirmationModal({
             </Text>
           )}
 
-          <View className="flex-row justify-end gap-3">
+          <View className="flex-row gap-3">
             <Pressable
               onPress={onCancel}
-              className="rounded-xl px-4 py-2.5"
+              className="flex-1 items-center rounded-xl py-4"
               style={{ backgroundColor: theme.surface }}
             >
               <Text className="font-semibold" style={{ color: theme.text }}>
@@ -55,8 +54,8 @@ export function ConfirmationModal({
             </Pressable>
             <Pressable
               onPress={onConfirm}
-              className="rounded-xl px-4 py-2.5"
-              style={{ backgroundColor: destructive ? Palette.danger : theme.primary }}
+              className="flex-1 items-center rounded-xl py-4"
+              style={{ backgroundColor: confirmColor ?? theme.primary }}
             >
               <Text className="font-semibold text-white">{confirmLabel}</Text>
             </Pressable>

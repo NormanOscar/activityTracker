@@ -111,6 +111,20 @@ export function CreateActivityModal({
               />
             </View>
 
+            <View className="gap-2">
+              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                Category
+              </Text>
+              <CategorySelect categories={categories} value={categoryId} onChange={setCategoryId} />
+            </View>
+
+            <View className="gap-2">
+              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                Start date
+              </Text>
+              <DateField value={startDate} onChange={setStartDate} />
+            </View>
+
             <View className="flex-row justify-center gap-6">
               <View className="items-center gap-2">
                 <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
@@ -124,20 +138,6 @@ export function CreateActivityModal({
                 </Text>
                 <IconSelect value={icon} onChange={setIcon} />
               </View>
-            </View>
-
-            <View className="gap-2">
-              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
-                Category
-              </Text>
-              <CategorySelect categories={categories} value={categoryId} onChange={setCategoryId} />
-            </View>
-
-            <View className="gap-2">
-              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
-                Start date
-              </Text>
-              <DateField value={startDate} onChange={setStartDate} />
             </View>
 
             {error ? <Text style={{ color: Palette.danger }}>{error}</Text> : null}

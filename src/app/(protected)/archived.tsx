@@ -10,8 +10,10 @@ import { useTheme } from "@/hooks/use-theme";
 import { PageHeader } from "@/components/PageHeader";
 import { SkeletonLoader } from "@/components/SkeletonLoader";
 import { ArchivedActivityRow } from "@/components/ArchivedActivityRow";
+import { ConfirmationModal } from "@/components/modals/ConfirmationModal";
 import { getActivities, unarchiveActivity } from "@/services/activityService";
 import { getDateKey } from "@/utils/dateKey";
+import { Palette } from "@/constants/colors";
 import type { Activity } from "@/models/Activity";
 
 function formatGroupDate(dateKey: string) {
@@ -32,6 +34,8 @@ export default function ArchivedActivitiesScreen() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [sortAscending, setSortAscending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pendingUnarchive, setPendingUnarchive] = useState<Activity | null>(null);
+  const [unarchiving, setUnarchiving] = useState(false);
 
   const loadArchived = useCallback(async () => {
     if (!user) return;
@@ -64,14 +68,20 @@ export default function ArchivedActivitiesScreen() {
     return Array.from(byDate.entries()).sort(([a], [b]) => (sortAscending ? a.localeCompare(b) : b.localeCompare(a)));
   }, [activities, sortAscending]);
 
-  const handleUnarchive = async (activity: Activity) => {
-    if (!user) return;
+  const confirmUnarchive = async () => {
+    if (!user || !pendingUnarchive) return;
+    const activity = pendingUnarchive;
+
+    setUnarchiving(true);
     setActivities((prev) => prev.filter((a) => a.id !== activity.id));
     try {
       await unarchiveActivity(user.uid, activity.id);
+      setPendingUnarchive(null);
     } catch (err) {
       console.error("Failed to unarchive activity:", err);
       setActivities((prev) => [...prev, activity]);
+    } finally {
+      setUnarchiving(false);
     }
   };
 
@@ -133,7 +143,7 @@ export default function ArchivedActivitiesScreen() {
                       <ArchivedActivityRow
                         key={activity.id}
                         activity={activity}
-                        onUnarchive={() => handleUnarchive(activity)}
+                        onUnarchive={() => setPendingUnarchive(activity)}
                       />
                     ))}
                   </View>
@@ -143,6 +153,16 @@ export default function ArchivedActivitiesScreen() {
           </>
         )}
       </ScrollView>
+
+      <ConfirmationModal
+        visible={!!pendingUnarchive}
+        title="Unarchive activity?"
+        message={pendingUnarchive ? `"${pendingUnarchive.name}" will show up in your activities again.` : undefined}
+        confirmLabel={unarchiving ? "Working..." : "Unarchive"}
+        confirmColor={Palette.success}
+        onConfirm={confirmUnarchive}
+        onCancel={() => setPendingUnarchive(null)}
+      />
     </SafeAreaView>
   );
 }

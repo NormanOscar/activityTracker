@@ -65,12 +65,25 @@ export function EditActivityModal({
     setError("");
     try {
       const createdAt = startOfDay(startDate);
-      const updated: Activity = { ...activity, name: name.trim(), color, icon, categoryId, isFavorite, createdAt };
+
+      const wasFavorite = activity.isFavorite ?? false;
+      const categoryStillExists = categories.some((c) => c.id === categoryId);
+      const resolvedCategoryId = wasFavorite && !isFavorite && !categoryStillExists ? "" : categoryId;
+
+      const updated: Activity = {
+        ...activity,
+        name: name.trim(),
+        color,
+        icon,
+        categoryId: resolvedCategoryId,
+        isFavorite,
+        createdAt,
+      };
       await updateActivity(user.uid, activity.id, {
         name: updated.name,
         color,
         icon,
-        categoryId,
+        categoryId: resolvedCategoryId,
         isFavorite,
         createdAt,
       });
@@ -131,6 +144,20 @@ export function EditActivityModal({
                 style={{ borderColor: theme.border, backgroundColor: theme.surface, color: theme.text }}
               />
             </View>
+            
+            <View className="gap-2">
+              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                Category
+              </Text>
+              <CategorySelect categories={categories} value={categoryId} onChange={setCategoryId} />
+            </View>
+
+            <View className="gap-2">
+              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                Start date
+              </Text>
+              <DateField value={startDate} onChange={setStartDate} />
+            </View>
 
             <View className="flex-row justify-center gap-6">
               <View className="items-center gap-2">
@@ -145,20 +172,6 @@ export function EditActivityModal({
                 </Text>
                 <IconSelect value={icon} onChange={setIcon} />
               </View>
-            </View>
-
-            <View className="gap-2">
-              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
-                Category
-              </Text>
-              <CategorySelect categories={categories} value={categoryId} onChange={setCategoryId} />
-            </View>
-
-            <View className="gap-2">
-              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
-                Start date
-              </Text>
-              <DateField value={startDate} onChange={setStartDate} />
             </View>
 
             {error ? <Text style={{ color: Palette.danger }}>{error}</Text> : null}

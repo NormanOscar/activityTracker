@@ -24,6 +24,7 @@ type CategoryAccordionProps = {
   canMoveUp?: boolean;
   canMoveDown?: boolean;
   sortable?: boolean;
+  onLongPressHeader?: () => void;
 };
 
 export function CategoryAccordion({
@@ -40,6 +41,7 @@ export function CategoryAccordion({
   canMoveUp = false,
   canMoveDown = false,
   sortable = true,
+  onLongPressHeader,
 }: CategoryAccordionProps) {
   const theme = useTheme();
   const [collapsed, setCollapsed] = useState(false);
@@ -54,10 +56,11 @@ export function CategoryAccordion({
       >
         <TouchableOpacity
           onPress={() => setCollapsed((prev) => !prev)}
+          onLongPress={editMode ? undefined : onLongPressHeader}
           className="flex-1 flex-row items-center px-3 py-3"
         >
           <Text className="text-base font-bold" style={{ color: theme.text }}>
-            {category.name}
+            {category.name} {collapsed ? `(${activities.length})` : ''}
           </Text>
         </TouchableOpacity>
 
