@@ -24,7 +24,9 @@ import {
   archiveActivity,
   clearActivitiesCategory,
   deleteActivity,
+  getActiveActivities,
   getActivities,
+  getActivityIdsByCategory,
   updateActivityOrder,
 } from "@/services/activityService";
 import { deleteCategory, getCategories, updateCategoryOrder } from "@/services/categoryService";
@@ -109,13 +111,28 @@ export default function HomeScreen() {
     [visibleActivities]
   );
 
+  const hasFullActivitiesRef = useRef(false);
+
   const loadActivities = useCallback(async () => {
+    if (!user) return;
+    try {
+      const data = hasFullActivitiesRef.current
+        ? await getActivities(user.uid)
+        : await getActiveActivities(user.uid);
+      setActivities(data);
+    } catch (err) {
+      console.error("Failed to load activities:", err);
+    }
+  }, [user]);
+
+  const loadFullActivities = useCallback(async () => {
     if (!user) return;
     try {
       const data = await getActivities(user.uid);
       setActivities(data);
+      hasFullActivitiesRef.current = true;
     } catch (err) {
-      console.error("Failed to load activities:", err);
+      console.error("Failed to load full activity history:", err);
     }
   }, [user]);
 
@@ -133,6 +150,12 @@ export default function HomeScreen() {
     setLoading(true);
     Promise.all([loadActivities(), loadCategories()]).finally(() => setLoading(false));
   }, [loadActivities, loadCategories]);
+
+  useEffect(() => {
+    if (hasFullActivitiesRef.current) return;
+    if (getDateKey(selectedDate) === getDateKey(todayDate)) return;
+    loadFullActivities();
+  }, [selectedDate, todayDate, loadFullActivities]);
 
   useEffect(() => {
     if (!user) return;
@@ -321,14 +344,14 @@ export default function HomeScreen() {
 
     setCategoryActionLoading(true);
     try {
-      const affectedIds = activities.filter((a) => a.categoryId === categoryId).map((a) => a.id);
+      const affectedIds = await getActivityIdsByCategory(user.uid, categoryId);
       await deleteCategory(user.uid, categoryId);
       if (affectedIds.length > 0) {
         await clearActivitiesCategory(user.uid, affectedIds);
       }
       setCategories((prev) => prev.filter((c) => c.id !== categoryId));
       setActivities((prev) =>
-        prev.map((activity) => (affectedIds.includes(activity.id) ? { ...activity, categoryId: undefined } : activity))
+        prev.map((activity) => (affectedIds.includes(activity.id) ? { ...activity, categoryId: null } : activity))
       );
       setPendingCategoryDelete(null);
     } catch (err) {

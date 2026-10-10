@@ -68,7 +68,7 @@ export function EditActivityModal({
 
       const wasFavorite = activity.isFavorite ?? false;
       const categoryStillExists = categories.some((c) => c.id === categoryId);
-      const resolvedCategoryId = wasFavorite && !isFavorite && !categoryStillExists ? "" : categoryId;
+      const resolvedCategoryId = wasFavorite && !isFavorite && !categoryStillExists ? null : categoryId || null;
 
       const updated: Activity = {
         ...activity,

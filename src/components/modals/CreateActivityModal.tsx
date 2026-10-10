@@ -63,7 +63,7 @@ export function CreateActivityModal({
         name: name.trim(),
         color,
         icon,
-        categoryId,
+        categoryId: categoryId || null,
         createdAt: startOfDay(startDate),
       });
       onCreated?.(id);

@@ -5,10 +5,10 @@ export type Activity = {
   name: string;
   color: Color;
   icon: string;
-  categoryId?: string;
-  isFavorite?: boolean;
-  createdAt?: Date;
-  archivedAt?: Date;
-  deletedAt?: Date;
+  categoryId: string | null;
+  isFavorite: boolean;
+  createdAt: Date | null;
+  archivedAt: Date | null;
+  deletedAt: Date | null;
   sortOrder: number;
 }

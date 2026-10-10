@@ -1,4 +1,15 @@
-import { addDoc, collection, deleteField, doc, getDocs, Timestamp, updateDoc, writeBatch } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  query,
+  Timestamp,
+  updateDoc,
+  where,
+  writeBatch,
+} from "firebase/firestore";
+import type { DocumentData, QueryDocumentSnapshot } from "firebase/firestore";
 
 import { FIREBASE_DB } from "@/config/FirebaseConfig";
 import type { Activity } from "@/models/Activity";
@@ -10,20 +21,37 @@ function activitiesCollection(userId: string) {
   return collection(FIREBASE_DB, "users", userId, "activities");
 }
 
-function toDate(value: unknown): Date | undefined {
-  return value instanceof Timestamp ? value.toDate() : undefined;
+function toDate(value: unknown): Date | null {
+  return value instanceof Timestamp ? value.toDate() : null;
+}
+
+function mapActivityDoc(doc: QueryDocumentSnapshot<DocumentData>): Activity {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    name: data.name,
+    color: data.color,
+    icon: data.icon,
+    categoryId: data.categoryId ?? null,
+    isFavorite: data.isFavorite ?? false,
+    createdAt: toDate(data.createdAt),
+    archivedAt: toDate(data.archivedAt),
+    deletedAt: toDate(data.deletedAt),
+    sortOrder: data.sortOrder ?? 0,
+  } satisfies Activity;
 }
 
 export async function createActivity(userId: string, activity: NewActivity): Promise<string> {
-  const existing = await getDocs(activitiesCollection(userId));
-  const nextSortOrder =
-    existing.docs.reduce((max, d) => Math.max(max, d.data().sortOrder ?? -1), -1) + 1;
-
-  const { categoryId, ...rest } = activity;
   const ref = await addDoc(activitiesCollection(userId), {
-    ...rest,
-    ...(categoryId ? { categoryId } : {}),
-    sortOrder: nextSortOrder,
+    name: activity.name,
+    color: activity.color,
+    icon: activity.icon,
+    categoryId: activity.categoryId ?? null,
+    createdAt: activity.createdAt ?? null,
+    isFavorite: false,
+    archivedAt: null,
+    deletedAt: null,
+    sortOrder: Date.now(),
   });
 
   return ref.id;
@@ -31,24 +59,17 @@ export async function createActivity(userId: string, activity: NewActivity): Pro
 
 export async function getActivities(userId: string): Promise<Activity[]> {
   const snapshot = await getDocs(activitiesCollection(userId));
+  return snapshot.docs.map(mapActivityDoc).sort((a, b) => a.sortOrder - b.sortOrder);
+}
 
-  const activities = snapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      name: data.name,
-      color: data.color,
-      icon: data.icon,
-      categoryId: data.categoryId,
-      isFavorite: data.isFavorite ?? false,
-      createdAt: toDate(data.createdAt),
-      archivedAt: toDate(data.archivedAt),
-      deletedAt: toDate(data.deletedAt),
-      sortOrder: data.sortOrder ?? 0,
-    } satisfies Activity;
-  });
-
-  return activities.sort((a, b) => a.sortOrder - b.sortOrder);
+export async function getActiveActivities(userId: string): Promise<Activity[]> {
+  const activeQuery = query(
+    activitiesCollection(userId),
+    where("archivedAt", "==", null),
+    where("deletedAt", "==", null)
+  );
+  const snapshot = await getDocs(activeQuery);
+  return snapshot.docs.map(mapActivityDoc).sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
 export async function updateActivity(
@@ -56,10 +77,13 @@ export async function updateActivity(
   activityId: string,
   data: EditableActivity
 ): Promise<void> {
-  const { categoryId, ...rest } = data;
   await updateDoc(doc(FIREBASE_DB, "users", userId, "activities", activityId), {
-    ...rest,
-    categoryId: categoryId ? categoryId : deleteField(),
+    name: data.name,
+    color: data.color,
+    icon: data.icon,
+    categoryId: data.categoryId ?? null,
+    isFavorite: data.isFavorite,
+    createdAt: data.createdAt ?? null,
   });
 }
 
@@ -73,8 +97,14 @@ export async function deleteActivity(userId: string, activityId: string, deleted
 
 export async function unarchiveActivity(userId: string, activityId: string): Promise<void> {
   await updateDoc(doc(FIREBASE_DB, "users", userId, "activities", activityId), {
-    archivedAt: deleteField(),
+    archivedAt: null,
   });
+}
+
+export async function getActivityIdsByCategory(userId: string, categoryId: string): Promise<string[]> {
+  const categoryQuery = query(activitiesCollection(userId), where("categoryId", "==", categoryId));
+  const snapshot = await getDocs(categoryQuery);
+  return snapshot.docs.map((d) => d.id);
 }
 
 export async function clearActivitiesCategory(userId: string, activityIds: string[]): Promise<void> {
@@ -82,7 +112,7 @@ export async function clearActivitiesCategory(userId: string, activityIds: strin
 
   const batch = writeBatch(FIREBASE_DB);
   activityIds.forEach((activityId) => {
-    batch.update(doc(FIREBASE_DB, "users", userId, "activities", activityId), { categoryId: deleteField() });
+    batch.update(doc(FIREBASE_DB, "users", userId, "activities", activityId), { categoryId: null });
   });
 
   await batch.commit();

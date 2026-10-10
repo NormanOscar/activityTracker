@@ -22,10 +22,7 @@ export async function getCategories(userId: string): Promise<Category[]> {
 }
 
 export async function createCategory(userId: string, name: string): Promise<string> {
-  const existing = await getDocs(categoriesCollection(userId));
-  const nextSortOrder = existing.docs.reduce((max, d) => Math.max(max, d.data().sortOrder ?? -1), -1) + 1;
-
-  const ref = await addDoc(categoriesCollection(userId), { name, sortOrder: nextSortOrder });
+  const ref = await addDoc(categoriesCollection(userId), { name, sortOrder: Date.now() });
   return ref.id;
 }
 
