@@ -5,8 +5,8 @@ import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArchiveIcon, ArrowLeft01Icon, ArrowRight01Icon, Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 
-import { AuthContext } from "@/utils/authContext";
-import { useSettings } from "@/utils/settingsContext";
+import { AuthContext } from "@/context/authContext";
+import { useSettings } from "@/context/settingsContext";
 import { useTheme } from "@/hooks/use-theme";
 import { PageHeader } from "@/components/PageHeader";
 import { Palette } from "@/constants/colors";

@@ -3,8 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import '../../global.css';
-import { AuthProvider } from "@/utils/authContext";
-import { SettingsProvider } from "@/utils/settingsContext";
+import { AuthProvider } from "@/context/authContext";
+import { SettingsProvider } from "@/context/settingsContext";
 
 export default function RootLayout() {
   return (

@@ -1,17 +1,18 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { ArrowLeft01Icon, SortByDown01Icon, SortByUp01Icon } from "@hugeicons/core-free-icons";
 
-import { AuthContext } from "@/utils/authContext";
+import { AuthContext } from "@/context/authContext";
+import { ActivitiesContext } from "@/context/activitiesContext";
 import { useTheme } from "@/hooks/use-theme";
 import { PageHeader } from "@/components/PageHeader";
 import { SkeletonLoader } from "@/components/SkeletonLoader";
 import { ArchivedActivityRow } from "@/components/ArchivedActivityRow";
 import { ConfirmationModal } from "@/components/modals/ConfirmationModal";
-import { getActivities, unarchiveActivity } from "@/services/activityService";
+import { unarchiveActivity } from "@/services/activityService";
 import { getDateKey } from "@/utils/dateKey";
 import { Palette } from "@/constants/colors";
 import type { Activity } from "@/models/Activity";
@@ -30,31 +31,27 @@ export default function ArchivedActivitiesScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { user } = useContext(AuthContext);
+  const { activities, setActivities, loading: contextLoading, hasFullActivities, loadFullActivities } =
+    useContext(ActivitiesContext);
 
-  const [activities, setActivities] = useState<Activity[]>([]);
   const [sortAscending, setSortAscending] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [pendingUnarchive, setPendingUnarchive] = useState<Activity | null>(null);
   const [unarchiving, setUnarchiving] = useState(false);
 
-  const loadArchived = useCallback(async () => {
-    if (!user) return;
-    try {
-      const data = await getActivities(user.uid);
-      setActivities(data.filter((activity) => activity.archivedAt && !activity.deletedAt));
-    } catch (err) {
-      console.error("Failed to load archived activities:", err);
-    }
-  }, [user]);
-
   useEffect(() => {
-    setLoading(true);
-    loadArchived().finally(() => setLoading(false));
-  }, [loadArchived]);
+    loadFullActivities();
+  }, [loadFullActivities]);
+
+  const loading = contextLoading || !hasFullActivities;
+
+  const archivedActivities = useMemo(
+    () => activities.filter((activity) => activity.archivedAt && !activity.deletedAt),
+    [activities]
+  );
 
   const groups = useMemo(() => {
     const byDate = new Map<string, Activity[]>();
-    for (const activity of activities) {
+    for (const activity of archivedActivities) {
       if (!activity.archivedAt) continue;
       const key = getDateKey(activity.archivedAt);
       const existing = byDate.get(key);
@@ -66,7 +63,7 @@ export default function ArchivedActivitiesScreen() {
     }
 
     return Array.from(byDate.entries()).sort(([a], [b]) => (sortAscending ? a.localeCompare(b) : b.localeCompare(a)));
-  }, [activities, sortAscending]);
+  }, [archivedActivities, sortAscending]);
 
   const confirmUnarchive = async () => {
     if (!user || !pendingUnarchive) return;
@@ -160,6 +157,7 @@ export default function ArchivedActivitiesScreen() {
         message={pendingUnarchive ? `"${pendingUnarchive.name}" will show up in your activities again.` : undefined}
         confirmLabel={unarchiving ? "Working..." : "Unarchive"}
         confirmColor={Palette.success}
+        loading={unarchiving}
         onConfirm={confirmUnarchive}
         onCancel={() => setPendingUnarchive(null)}
       />

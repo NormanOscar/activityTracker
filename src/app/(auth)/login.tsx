@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 
-import { AuthContext } from "@/utils/authContext";
+import { AuthContext } from "@/context/authContext";
 
 export default function LoginScreen() {
   const { logIn } = useContext(AuthContext);
@@ -18,13 +18,18 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleLogin = async () => {
+    if (submitting) return;
     setError("");
+    setSubmitting(true);
     try {
       await logIn(email, password);
     } catch (e: any) {
       setError(e.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -34,7 +39,11 @@ export default function LoginScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
       >
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View className="flex-1 justify-center px-8">
             <Text className="mb-8 text-center text-3xl font-bold text-white">Sign in</Text>
 
@@ -70,9 +79,13 @@ export default function LoginScreen() {
 
             <TouchableOpacity
               onPress={handleLogin}
+              disabled={submitting}
               className="mt-4 items-center rounded-full bg-white py-3 shadow"
+              style={{ opacity: submitting ? 0.6 : 1 }}
             >
-              <Text className="text-lg font-semibold text-brand">Log in</Text>
+              <Text className="text-lg font-semibold text-brand">
+                {submitting ? "Logging in..." : "Log in"}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => router.replace("/(auth)/signup")} className="mt-8">

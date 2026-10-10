@@ -1,5 +1,5 @@
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, RefreshControl, Text, TouchableOpacity, View } from "react-native";
+import { useContext, useEffect, useMemo, useState } from "react";
+import { RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import { ScrollView as GestureHandlerScrollView } from "react-native-gesture-handler";
 import Animated, { useAnimatedRef } from "react-native-reanimated";
 import { useRouter } from "expo-router";
@@ -7,9 +7,14 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Add01Icon, BlockGameIcon, Settings02Icon } from "@hugeicons/core-free-icons";
 import Sortable from "react-native-sortables";
 
-import { AuthContext } from "@/utils/authContext";
+import { AuthContext } from "@/context/authContext";
+import { ActivitiesContext } from "@/context/activitiesContext";
 import { useTheme } from "@/hooks/use-theme";
 import { useTodayDate } from "@/hooks/use-today-date";
+import { useDailyLog } from "@/hooks/use-daily-log";
+import { useEditMode } from "@/hooks/use-edit-mode";
+import { useActivityActions } from "@/hooks/use-activity-actions";
+import { useCategoryActions } from "@/hooks/use-category-actions";
 import { PageHeader } from "@/components/PageHeader";
 import { AddMenu } from "@/components/AddMenu";
 import { SkeletonLoader } from "@/components/SkeletonLoader";
@@ -20,22 +25,9 @@ import { EditActivityModal } from "@/components/modals/EditActivityModal";
 import { NewCategoryModal } from "@/components/modals/NewCategoryModal";
 import { EditCategoryModal } from "@/components/modals/EditCategoryModal";
 import { ConfirmationModal } from "@/components/modals/ConfirmationModal";
-import {
-  archiveActivity,
-  clearActivitiesCategory,
-  deleteActivity,
-  getActiveActivities,
-  getActivities,
-  getActivityIdsByCategory,
-  updateActivityOrder,
-} from "@/services/activityService";
-import { deleteCategory, getCategories, updateCategoryOrder } from "@/services/categoryService";
-import { getDailyLog, toggleActivityLog } from "@/services/logService";
 import { getDateKey, startOfDay } from "@/utils/dateKey";
 import { Palette } from "@/constants/colors";
-import type { Activity } from "@/models/Activity";
 import type { Category } from "@/models/Category";
-import type { DailyLog } from "@/models/DailyLog";
 
 const AnimatedScrollView = Animated.createAnimatedComponent(GestureHandlerScrollView);
 
@@ -47,34 +39,23 @@ export default function HomeScreen() {
   const theme = useTheme();
   const scrollableRef = useAnimatedRef<typeof AnimatedScrollView>();
 
+  const {
+    activities,
+    setActivities,
+    categories,
+    setCategories,
+    loading,
+    refreshActivities: loadActivities,
+    loadFullActivities,
+    refreshCategories: loadCategories,
+  } = useContext(ActivitiesContext);
+
   const todayDate = useTodayDate();
   const [selectedDate, setSelectedDate] = useState(todayDate);
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showNewActivity, setShowNewActivity] = useState(false);
   const [showNewCategory, setShowNewCategory] = useState(false);
-
-  const [editMode, setEditMode] = useState(false);
-  const [savingOrder, setSavingOrder] = useState(false);
-  const originalOrderRef = useRef<Activity[]>([]);
-  const originalCategoryOrderRef = useRef<Category[]>([]);
-
-  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
-  const [pendingAction, setPendingAction] = useState<{ type: "archive" | "delete"; activity: Activity } | null>(
-    null
-  );
-  const [actionLoading, setActionLoading] = useState(false);
-
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [pendingCategoryDelete, setPendingCategoryDelete] = useState<Category | null>(null);
-  const [categoryActionLoading, setCategoryActionLoading] = useState(false);
-
-  const [dailyLog, setDailyLog] = useState<DailyLog | null>(null);
-  const logRequestIdRef = useRef(0);
-  const logSeqRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
     setSelectedDate(todayDate);
@@ -91,7 +72,7 @@ export default function HomeScreen() {
   }, [activities, selectedDate]);
 
   const activitiesByCategory = useMemo(() => {
-    const map = new Map<string, Activity[]>();
+    const map = new Map<string, typeof activities>();
     for (const category of categories) {
       map.set(
         category.id,
@@ -111,258 +92,57 @@ export default function HomeScreen() {
     [visibleActivities]
   );
 
-  const hasFullActivitiesRef = useRef(false);
-
-  const loadActivities = useCallback(async () => {
-    if (!user) return;
-    try {
-      const data = hasFullActivitiesRef.current
-        ? await getActivities(user.uid)
-        : await getActiveActivities(user.uid);
-      setActivities(data);
-    } catch (err) {
-      console.error("Failed to load activities:", err);
-    }
-  }, [user]);
-
-  const loadFullActivities = useCallback(async () => {
-    if (!user) return;
-    try {
-      const data = await getActivities(user.uid);
-      setActivities(data);
-      hasFullActivitiesRef.current = true;
-    } catch (err) {
-      console.error("Failed to load full activity history:", err);
-    }
-  }, [user]);
-
-  const loadCategories = useCallback(async () => {
-    if (!user) return;
-    try {
-      const data = await getCategories(user.uid);
-      setCategories(data);
-    } catch (err) {
-      console.error("Failed to load categories:", err);
-    }
-  }, [user]);
-
   useEffect(() => {
-    setLoading(true);
-    Promise.all([loadActivities(), loadCategories()]).finally(() => setLoading(false));
-  }, [loadActivities, loadCategories]);
-
-  useEffect(() => {
-    if (hasFullActivitiesRef.current) return;
     if (getDateKey(selectedDate) === getDateKey(todayDate)) return;
     loadFullActivities();
   }, [selectedDate, todayDate, loadFullActivities]);
 
-  useEffect(() => {
-    if (!user) return;
-    const dateKey = getDateKey(selectedDate);
-    const requestId = ++logRequestIdRef.current;
+  const { loggedIds, toggleLog: handleToggleLog } = useDailyLog(user?.uid, selectedDate);
 
-    setDailyLog(null);
+  const { editMode, savingOrder, enterEditMode, cancelEditMode, saveEditMode, moveCategory, handleActivityDragEnd } =
+    useEditMode({
+      userId: user?.uid,
+      activities,
+      setActivities,
+      categories,
+      setCategories,
+      activitiesByCategory,
+      uncategorizedActivities,
+    });
 
-    getDailyLog(user.uid, dateKey)
-      .then((log) => {
-        if (requestId !== logRequestIdRef.current) return;
-        setDailyLog(log);
-      })
-      .catch((err) => {
-        if (requestId !== logRequestIdRef.current) return;
-        console.error("Failed to load daily log:", err);
-        setDailyLog({ date: dateKey, activityIds: [] });
-      });
-  }, [user, selectedDate]);
+  const {
+    editingActivity,
+    setEditingActivity,
+    pendingAction,
+    setPendingAction,
+    actionLoading,
+    handleActivityLongPress,
+    handleRequestArchive,
+    handleRequestDelete,
+    confirmPendingAction,
+    handleActivitySaved,
+  } = useActivityActions({ userId: user?.uid, selectedDate, setActivities });
+
+  const {
+    editingCategory,
+    setEditingCategory,
+    pendingCategoryDelete,
+    setPendingCategoryDelete,
+    categoryActionLoading,
+    handleCategoryLongPress,
+    handleCategorySaved,
+    handleRequestCategoryDelete,
+    confirmDeleteCategory,
+  } = useCategoryActions({ userId: user?.uid, setCategories, setActivities });
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([loadActivities(), loadCategories()]);
-    setRefreshing(false);
-  };
-
-  const handleToggleLog = async (activity: Activity) => {
-    if (!user || editMode) return;
-
-    const dateKey = getDateKey(selectedDate);
-    const currentlyLogged = dailyLog?.activityIds.includes(activity.id) ?? false;
-    const nextLogged = !currentlyLogged;
-
-    const seq = (logSeqRef.current[activity.id] ?? 0) + 1;
-    logSeqRef.current[activity.id] = seq;
-
-    setDailyLog((prev) => {
-      const base = prev ?? { date: dateKey, activityIds: [] };
-      const activityIds = nextLogged
-        ? [...base.activityIds, activity.id]
-        : base.activityIds.filter((id) => id !== activity.id);
-      return { ...base, activityIds };
-    });
-
     try {
-      await toggleActivityLog(user.uid, dateKey, activity.id, nextLogged);
-    } catch (err) {
-      if (logSeqRef.current[activity.id] !== seq) return;
-      console.error("Failed to update log:", err);
-      setDailyLog((prev) => {
-        if (!prev) return prev;
-        const activityIds = nextLogged
-          ? prev.activityIds.filter((id) => id !== activity.id)
-          : [...prev.activityIds, activity.id];
-        return { ...prev, activityIds };
-      });
-      Alert.alert("Couldn't update log", "Please try again.");
-    }
-  };
-
-  const enterEditMode = () => {
-    originalOrderRef.current = activities;
-    originalCategoryOrderRef.current = categories;
-    setEditMode(true);
-  };
-
-  const cancelEditMode = () => {
-    setActivities(originalOrderRef.current);
-    setCategories(originalCategoryOrderRef.current);
-    setEditMode(false);
-  };
-
-  const moveCategory = (categoryId: string, direction: -1 | 1) => {
-    setCategories((prev) => {
-      const index = prev.findIndex((category) => category.id === categoryId);
-      const swapIndex = index + direction;
-      if (index < 0 || swapIndex < 0 || swapIndex >= prev.length) return prev;
-      const next = [...prev];
-      [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
-      return next;
-    });
-  };
-
-  const handleActivityDragEnd = (data: Activity[]) => {
-    setActivities((prev) => {
-      const groupIds = new Set(data.map((activity) => activity.id));
-      let i = 0;
-      return prev.map((activity) => (groupIds.has(activity.id) ? data[i++] : activity));
-    });
-  };
-
-  const saveEditMode = async () => {
-    if (!user) return;
-    setSavingOrder(true);
-    try {
-      const orderedCategoryIds = categories.map((category) => category.id);
-      await updateCategoryOrder(user.uid, orderedCategoryIds);
-      setCategories((prev) => prev.map((category, index) => ({ ...category, sortOrder: index })));
-
-      const orderedIds = [
-        ...categories.flatMap((category) => activitiesByCategory.get(category.id)?.map((a) => a.id) ?? []),
-        ...uncategorizedActivities.map((a) => a.id),
-      ];
-      await updateActivityOrder(user.uid, orderedIds);
-      setActivities((prev) => {
-        const orderIndex = new Map(orderedIds.map((id, index) => [id, index]));
-        return prev.map((activity) =>
-          orderIndex.has(activity.id) ? { ...activity, sortOrder: orderIndex.get(activity.id)! } : activity
-        );
-      });
-      setEditMode(false);
-    } catch (err) {
-      console.error("Failed to save order:", err);
-      Alert.alert("Couldn't save order", "Please try again.");
+      await Promise.all([loadActivities(), loadCategories()]);
     } finally {
-      setSavingOrder(false);
+      setRefreshing(false);
     }
   };
-
-  const handleActivityLongPress = (activity: Activity) => {
-    setEditingActivity(activity);
-  };
-
-  const handleRequestArchive = (activity: Activity) => {
-    setEditingActivity(null);
-    setPendingAction({ type: "archive", activity });
-  };
-
-  const handleRequestDelete = (activity: Activity) => {
-    setEditingActivity(null);
-    setPendingAction({ type: "delete", activity });
-  };
-
-  const confirmPendingAction = async () => {
-    if (!user || !pendingAction) return;
-    const { type, activity } = pendingAction;
-    const cutoff = startOfDay(selectedDate);
-
-    setActionLoading(true);
-    try {
-      if (type === "archive") {
-        await archiveActivity(user.uid, activity.id, cutoff);
-      } else {
-        await deleteActivity(user.uid, activity.id, cutoff);
-      }
-      setActivities((prev) =>
-        prev.map((a) =>
-          a.id === activity.id
-            ? type === "archive"
-              ? { ...a, archivedAt: cutoff }
-              : { ...a, deletedAt: cutoff }
-            : a
-        )
-      );
-      setPendingAction(null);
-    } catch (err) {
-      console.error(`Failed to ${type} activity:`, err);
-      Alert.alert(`Couldn't ${type} activity`, "Please try again.");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleActivitySaved = (updated: Activity) => {
-    setActivities((prev) => prev.map((activity) => (activity.id === updated.id ? updated : activity)));
-    setEditingActivity(null);
-  };
-
-  const handleCategoryLongPress = (category: Category) => {
-    setEditingCategory(category);
-  };
-
-  const handleCategorySaved = (updated: Category) => {
-    setCategories((prev) => prev.map((category) => (category.id === updated.id ? updated : category)));
-    setEditingCategory(null);
-  };
-
-  const handleRequestCategoryDelete = (category: Category) => {
-    setEditingCategory(null);
-    setPendingCategoryDelete(category);
-  };
-
-  const confirmDeleteCategory = async () => {
-    if (!user || !pendingCategoryDelete) return;
-    const categoryId = pendingCategoryDelete.id;
-
-    setCategoryActionLoading(true);
-    try {
-      const affectedIds = await getActivityIdsByCategory(user.uid, categoryId);
-      await deleteCategory(user.uid, categoryId);
-      if (affectedIds.length > 0) {
-        await clearActivitiesCategory(user.uid, affectedIds);
-      }
-      setCategories((prev) => prev.filter((c) => c.id !== categoryId));
-      setActivities((prev) =>
-        prev.map((activity) => (affectedIds.includes(activity.id) ? { ...activity, categoryId: null } : activity))
-      );
-      setPendingCategoryDelete(null);
-    } catch (err) {
-      console.error("Failed to delete category:", err);
-      Alert.alert("Couldn't delete category", "Please try again.");
-    } finally {
-      setCategoryActionLoading(false);
-    }
-  };
-
-  const loggedIds = useMemo(() => new Set(dailyLog?.activityIds ?? []), [dailyLog]);
 
   return (
     <View className="flex-1" style={{ backgroundColor: theme.background }}>
@@ -370,11 +150,13 @@ export default function HomeScreen() {
         <PageHeader
           date={selectedDate}
           onChangeDate={setSelectedDate}
+          disabled={editMode}
           right={
             <TouchableOpacity
               onPress={() => router.push("/settings")}
+              disabled={editMode}
               className="h-12 w-12 items-center justify-center rounded-full"
-              style={{ backgroundColor: theme.surface }}
+              style={{ backgroundColor: theme.surface, opacity: editMode ? 0.4 : 1 }}
             >
               <HugeiconsIcon icon={Settings02Icon} size={28} color={theme.text} />
             </TouchableOpacity>
@@ -511,16 +293,18 @@ export default function HomeScreen() {
         <>
           <TouchableOpacity
             onPress={enterEditMode}
+            disabled={loading}
             className="absolute bottom-8 left-6 h-20 w-20 items-center justify-center rounded-full shadow-lg"
-            style={{ backgroundColor: theme.editButton, zIndex: 50, elevation: 10 }}
+            style={{ backgroundColor: theme.editButton, zIndex: 50, elevation: 10, opacity: loading ? 0.4 : 1 }}
           >
             <HugeiconsIcon icon={BlockGameIcon} size={30} color={theme.text} />
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => setShowAddMenu(true)}
+            disabled={loading}
             className="absolute bottom-8 right-6 h-20 w-20 items-center justify-center rounded-full shadow-lg"
-            style={{ backgroundColor: theme.primary, zIndex: 50, elevation: 10 }}
+            style={{ backgroundColor: theme.primary, zIndex: 50, elevation: 10, opacity: loading ? 0.4 : 1 }}
           >
             <HugeiconsIcon icon={Add01Icon} size={30} color={theme.text} />
           </TouchableOpacity>
@@ -574,6 +358,7 @@ export default function HomeScreen() {
         }
         confirmLabel={actionLoading ? "Working..." : pendingAction?.type === "archive" ? "Archive" : "Delete"}
         confirmColor={pendingAction?.type === "delete" ? Palette.danger : theme.primary}
+        loading={actionLoading}
         onConfirm={confirmPendingAction}
         onCancel={() => setPendingAction(null)}
       />
@@ -588,6 +373,7 @@ export default function HomeScreen() {
         }
         confirmLabel={categoryActionLoading ? "Working..." : "Delete"}
         confirmColor={Palette.danger}
+        loading={categoryActionLoading}
         onConfirm={confirmDeleteCategory}
         onCancel={() => setPendingCategoryDelete(null)}
       />

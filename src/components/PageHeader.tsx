@@ -35,9 +35,10 @@ type PageHeaderProps = {
   right?: ReactNode;
   date?: Date;
   onChangeDate?: (date: Date) => void;
+  disabled?: boolean;
 };
 
-export function PageHeader({ left, center, right, date, onChangeDate }: PageHeaderProps) {
+export function PageHeader({ left, center, right, date, onChangeDate, disabled = false }: PageHeaderProps) {
   const theme = useTheme();
   const isDark = useIsDark();
   const insets = useSafeAreaInsets();
@@ -60,8 +61,9 @@ export function PageHeader({ left, center, right, date, onChangeDate }: PageHead
     ? !isToday && (
         <TouchableOpacity
           onPress={() => onChangeDate!(new Date())}
+          disabled={disabled}
           className="rounded-full border px-6 py-2.5"
-          style={{ borderColor: theme.border, backgroundColor: theme.surface }}
+          style={{ borderColor: theme.border, backgroundColor: theme.surface, opacity: disabled ? 0.4 : 1 }}
         >
           <Text className="text-base font-semibold" style={{ color: theme.text }}>
             Today
@@ -71,13 +73,14 @@ export function PageHeader({ left, center, right, date, onChangeDate }: PageHead
     : left;
 
   const resolvedCenter = isDateMode ? (
-    <View className="flex-row items-center gap-4">
-      <TouchableOpacity onPress={() => onChangeDate!(addDays(date!, -1))} className="p-1">
+    <View className="flex-row items-center gap-4" style={{ opacity: disabled ? 0.4 : 1 }}>
+      <TouchableOpacity onPress={() => onChangeDate!(addDays(date!, -1))} disabled={disabled} className="p-1">
         <HugeiconsIcon icon={ArrowLeft01Icon} size={28} color={theme.text} />
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={() => setPickerOpen(true)}
+        disabled={disabled}
         className="rounded-full border px-6 py-2.5"
         style={{ borderColor: theme.border, backgroundColor: theme.surface }}
       >
@@ -86,7 +89,7 @@ export function PageHeader({ left, center, right, date, onChangeDate }: PageHead
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => onChangeDate!(addDays(date!, 1))} className="p-1">
+      <TouchableOpacity onPress={() => onChangeDate!(addDays(date!, 1))} disabled={disabled} className="p-1">
         <HugeiconsIcon icon={ArrowRight01Icon} size={28} color={theme.text} />
       </TouchableOpacity>
     </View>

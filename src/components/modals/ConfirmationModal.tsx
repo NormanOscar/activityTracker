@@ -9,6 +9,7 @@ type ConfirmationModalProps = {
   confirmLabel?: string;
   cancelLabel?: string;
   confirmColor?: string;
+  loading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -20,6 +21,7 @@ export function ConfirmationModal({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   confirmColor,
+  loading = false,
   onConfirm,
   onCancel,
 }: ConfirmationModalProps) {
@@ -54,8 +56,9 @@ export function ConfirmationModal({
             </Pressable>
             <Pressable
               onPress={onConfirm}
+              disabled={loading}
               className="flex-1 items-center rounded-xl py-4"
-              style={{ backgroundColor: confirmColor ?? theme.primary }}
+              style={{ backgroundColor: confirmColor ?? theme.primary, opacity: loading ? 0.6 : 1 }}
             >
               <Text className="font-semibold text-white">{confirmLabel}</Text>
             </Pressable>

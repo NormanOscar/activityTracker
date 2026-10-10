@@ -2,7 +2,8 @@ import { Redirect, Stack } from "expo-router";
 import { useContext } from "react";
 import { ActivityIndicator, View } from "react-native";
 
-import { AuthContext } from "@/utils/authContext";
+import { AuthContext } from "@/context/authContext";
+import { ActivitiesProvider } from "@/context/activitiesContext";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function ProtectedLayout() {
@@ -24,5 +25,9 @@ export default function ProtectedLayout() {
     return <Redirect href="/(auth)/login" />;
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <ActivitiesProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </ActivitiesProvider>
+  );
 }

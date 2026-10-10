@@ -1,4 +1,4 @@
-import { useSettings } from "@/utils/settingsContext";
+import { useSettings } from "@/context/settingsContext";
 
 export function useIsDark(): boolean {
   const { theme } = useSettings();

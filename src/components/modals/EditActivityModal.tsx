@@ -4,7 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Cancel01Icon, StarIcon } from "@hugeicons/core-free-icons";
 
 import { useTheme } from "@/hooks/use-theme";
-import { AuthContext } from "@/utils/authContext";
+import { AuthContext } from "@/context/authContext";
 import { Palette } from "@/constants/colors";
 import { ColorSelect } from "@/components/inputs/ColorSelect";
 import { IconSelect } from "@/components/inputs/IconSelect";
@@ -58,6 +58,11 @@ export function EditActivityModal({
 
   const canSave = name.trim().length > 0 && color !== null && icon !== null && !saving;
 
+  const handleClose = () => {
+    if (saving) return;
+    onClose();
+  };
+
   const handleSave = async () => {
     if (!user || !activity || !color || !icon || !name.trim()) return;
 
@@ -97,8 +102,8 @@ export function EditActivityModal({
   };
 
   return (
-    <Modal visible={!!activity} animationType="fade" transparent onRequestClose={onClose}>
-      <Pressable onPress={onClose} className="flex-1 items-center justify-center bg-black/50 px-6">
+    <Modal visible={!!activity} animationType="fade" transparent onRequestClose={handleClose}>
+      <Pressable onPress={handleClose} className="flex-1 items-center justify-center bg-black/50 px-6">
         <Pressable
           onPress={(e) => e.stopPropagation()}
           className="w-full max-w-sm rounded-2xl p-5"
@@ -121,9 +126,10 @@ export function EditActivityModal({
                 />
               </Pressable>
               <Pressable
-                onPress={onClose}
+                onPress={handleClose}
+                disabled={saving}
                 className="h-9 w-9 items-center justify-center rounded-full"
-                style={{ backgroundColor: theme.surface }}
+                style={{ backgroundColor: theme.surface, opacity: saving ? 0.5 : 1 }}
               >
                 <HugeiconsIcon icon={Cancel01Icon} size={18} color={theme.text} />
               </Pressable>
