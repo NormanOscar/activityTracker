@@ -2,7 +2,6 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "r
 import { ActivityIndicator, Alert, RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import { ScrollView as GestureHandlerScrollView } from "react-native-gesture-handler";
 import Animated, { useAnimatedRef } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Add01Icon, BlockGameIcon, Settings02Icon } from "@hugeicons/core-free-icons";
@@ -11,20 +10,25 @@ import Sortable from "react-native-sortables";
 import { AuthContext } from "@/utils/authContext";
 import { useTheme } from "@/hooks/use-theme";
 import { useTodayDate } from "@/hooks/use-today-date";
+import { PageHeader } from "@/components/PageHeader";
+import { AddMenu } from "@/components/AddMenu";
+import { CategoryAccordion } from "@/components/CategoryAccordion";
 import { ActivityButton } from "@/components/ActivityButton";
-import { DateHeader } from "@/components/DateHeader";
 import { CreateActivityModal } from "@/components/modals/CreateActivityModal";
 import { EditActivityModal } from "@/components/modals/EditActivityModal";
+import { NewCategoryModal } from "@/components/modals/NewCategoryModal";
 import { ConfirmationModal } from "@/components/modals/ConfirmationModal";
 import { archiveActivity, deleteActivity, getActivities, updateActivityOrder } from "@/services/activityService";
+import { getCategories, updateCategoryOrder } from "@/services/categoryService";
 import { getDailyLog, toggleActivityLog } from "@/services/logService";
 import { getDateKey, startOfDay } from "@/utils/dateKey";
 import type { Activity } from "@/models/Activity";
+import type { Category } from "@/models/Category";
 import type { DailyLog } from "@/models/DailyLog";
 
-import { Palette } from "@/constants/colors";
-
 const AnimatedScrollView = Animated.createAnimatedComponent(GestureHandlerScrollView);
+
+const FAVORITES_SECTION: Category = { id: "favorites", name: "Favorites", sortOrder: -1 };
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -35,12 +39,16 @@ export default function HomeScreen() {
   const todayDate = useTodayDate();
   const [selectedDate, setSelectedDate] = useState(todayDate);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
   const [showNewActivity, setShowNewActivity] = useState(false);
+  const [showNewCategory, setShowNewCategory] = useState(false);
 
   const [editMode, setEditMode] = useState(false);
   const [savingOrder, setSavingOrder] = useState(false);
   const originalOrderRef = useRef<Activity[]>([]);
+  const originalCategoryOrderRef = useRef<Category[]>([]);
 
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [pendingAction, setPendingAction] = useState<{ type: "archive" | "delete"; activity: Activity } | null>(
@@ -67,6 +75,27 @@ export default function HomeScreen() {
     });
   }, [activities, selectedDate]);
 
+  const activitiesByCategory = useMemo(() => {
+    const map = new Map<string, Activity[]>();
+    for (const category of categories) {
+      map.set(
+        category.id,
+        visibleActivities.filter((activity) => activity.categoryId === category.id)
+      );
+    }
+    return map;
+  }, [categories, visibleActivities]);
+
+  const favoriteActivities = useMemo(
+    () => visibleActivities.filter((activity) => activity.isFavorite),
+    [visibleActivities]
+  );
+
+  const uncategorizedActivities = useMemo(
+    () => visibleActivities.filter((activity) => !activity.categoryId),
+    [visibleActivities]
+  );
+
   const loadActivities = useCallback(async () => {
     if (!user) return;
     try {
@@ -77,9 +106,20 @@ export default function HomeScreen() {
     }
   }, [user]);
 
+  const loadCategories = useCallback(async () => {
+    if (!user) return;
+    try {
+      const data = await getCategories(user.uid);
+      setCategories(data);
+    } catch (err) {
+      console.error("Failed to load categories:", err);
+    }
+  }, [user]);
+
   useEffect(() => {
     loadActivities();
-  }, [loadActivities]);
+    loadCategories();
+  }, [loadActivities, loadCategories]);
 
   useEffect(() => {
     if (!user) return;
@@ -106,7 +146,7 @@ export default function HomeScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadActivities();
+    await Promise.all([loadActivities(), loadCategories()]);
     setRefreshing(false);
   };
 
@@ -146,19 +186,47 @@ export default function HomeScreen() {
 
   const enterEditMode = () => {
     originalOrderRef.current = activities;
+    originalCategoryOrderRef.current = categories;
     setEditMode(true);
   };
 
   const cancelEditMode = () => {
     setActivities(originalOrderRef.current);
+    setCategories(originalCategoryOrderRef.current);
     setEditMode(false);
+  };
+
+  const moveCategory = (categoryId: string, direction: -1 | 1) => {
+    setCategories((prev) => {
+      const index = prev.findIndex((category) => category.id === categoryId);
+      const swapIndex = index + direction;
+      if (index < 0 || swapIndex < 0 || swapIndex >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
+      return next;
+    });
+  };
+
+  const handleActivityDragEnd = (data: Activity[]) => {
+    setActivities((prev) => {
+      const groupIds = new Set(data.map((activity) => activity.id));
+      let i = 0;
+      return prev.map((activity) => (groupIds.has(activity.id) ? data[i++] : activity));
+    });
   };
 
   const saveEditMode = async () => {
     if (!user) return;
     setSavingOrder(true);
     try {
-      const orderedIds = visibleActivities.map((activity) => activity.id);
+      const orderedCategoryIds = categories.map((category) => category.id);
+      await updateCategoryOrder(user.uid, orderedCategoryIds);
+      setCategories((prev) => prev.map((category, index) => ({ ...category, sortOrder: index })));
+
+      const orderedIds = [
+        ...categories.flatMap((category) => activitiesByCategory.get(category.id)?.map((a) => a.id) ?? []),
+        ...uncategorizedActivities.map((a) => a.id),
+      ];
       await updateActivityOrder(user.uid, orderedIds);
       setActivities((prev) => {
         const orderIndex = new Map(orderedIds.map((id, index) => [id, index]));
@@ -168,7 +236,7 @@ export default function HomeScreen() {
       });
       setEditMode(false);
     } catch (err) {
-      console.error("Failed to save activity order:", err);
+      console.error("Failed to save order:", err);
       Alert.alert("Couldn't save order", "Please try again.");
     } finally {
       setSavingOrder(false);
@@ -224,13 +292,15 @@ export default function HomeScreen() {
     setEditingActivity(null);
   };
 
+  const loggedIds = useMemo(() => new Set(dailyLog?.activityIds ?? []), [dailyLog]);
+
   return (
     <View className="flex-1" style={{ backgroundColor: theme.background }}>
-      <SafeAreaView className="flex-1" edges={["top"]}>
-        <DateHeader
+      <View className="flex-1">
+        <PageHeader
           date={selectedDate}
           onChangeDate={setSelectedDate}
-          rightAccessory={
+          right={
             <TouchableOpacity
               onPress={() => router.push("/settings")}
               className="h-12 w-12 items-center justify-center rounded-full"
@@ -252,45 +322,76 @@ export default function HomeScreen() {
         >
           <View className="mb-4 flex-row items-center gap-2">
             <Text className="text-2xl font-bold" style={{ color: theme.text }}>
-              Welcome
+              Activities
             </Text>
             {logLoading && <ActivityIndicator size="small" color={theme.secondaryText} />}
           </View>
 
           {visibleActivities.length === 0 && (
-            <Text style={{ color: theme.secondaryText }}>No activities yet.</Text>
+            <Text className="mb-4" style={{ color: theme.secondaryText }}>No activities yet.</Text>
           )}
 
-          <Sortable.Grid
-            data={visibleActivities}
-            columns={3}
-            rowGap={12}
-            columnGap={12}
-            strategy="insert"
-            sortEnabled={editMode}
+          <CategoryAccordion
+            category={FAVORITES_SECTION}
+            activities={favoriteActivities}
+            editMode={editMode}
+            loggedIds={loggedIds}
             scrollableRef={scrollableRef}
-            activeItemScale={1.05}
-            activeItemShadowOpacity={0.25}
-            keyExtractor={(item) => item.id}
-            onDragEnd={({ data }) => {
-              setActivities((prev) => {
-                const visibleIds = new Set(data.map((activity) => activity.id));
-                const hidden = prev.filter((activity) => !visibleIds.has(activity.id));
-                return [...hidden, ...data];
-              });
-            }}
-            renderItem={({ item }) => (
-              <ActivityButton
-                {...item}
-                editMode={editMode}
-                logged={dailyLog?.activityIds.includes(item.id) ?? false}
-                onPress={editMode ? undefined : () => handleToggleLog(item)}
-                onLongPress={editMode ? undefined : () => handleActivityLongPress(item)}
-              />
-            )}
+            onPressActivity={handleToggleLog}
+            onLongPressActivity={handleActivityLongPress}
+            onDragEnd={(_categoryId, data) => handleActivityDragEnd(data)}
+            sortable={false}
           />
+
+          {categories.map((category, index) => (
+            <CategoryAccordion
+              key={category.id}
+              category={category}
+              activities={activitiesByCategory.get(category.id) ?? []}
+              editMode={editMode}
+              loggedIds={loggedIds}
+              scrollableRef={scrollableRef}
+              onPressActivity={handleToggleLog}
+              onLongPressActivity={handleActivityLongPress}
+              onDragEnd={(_categoryId, data) => handleActivityDragEnd(data)}
+              onMoveUp={() => moveCategory(category.id, -1)}
+              onMoveDown={() => moveCategory(category.id, 1)}
+              canMoveUp={index > 0}
+              canMoveDown={index < categories.length - 1}
+            />
+          ))}
+
+          {uncategorizedActivities.length > 0 && (
+            <View className="mb-6">
+              <Text className="mb-3 text-base font-bold" style={{ color: theme.text }}>
+                No category
+              </Text>
+              <Sortable.Grid
+                data={uncategorizedActivities}
+                columns={3}
+                rowGap={12}
+                columnGap={12}
+                strategy="insert"
+                sortEnabled={editMode}
+                scrollableRef={scrollableRef}
+                activeItemScale={1.05}
+                activeItemShadowOpacity={0.25}
+                keyExtractor={(item) => item.id}
+                onDragEnd={({ data }) => handleActivityDragEnd(data)}
+                renderItem={({ item }) => (
+                  <ActivityButton
+                    {...item}
+                    editMode={editMode}
+                    logged={loggedIds.has(item.id)}
+                    onPress={editMode ? undefined : () => handleToggleLog(item)}
+                    onLongPress={editMode ? undefined : () => handleActivityLongPress(item)}
+                  />
+                )}
+              />
+            </View>
+          )}
         </AnimatedScrollView>
-      </SafeAreaView>
+      </View>
 
       {editMode ? (
         <View className="absolute bottom-8 left-6 right-6 flex-row justify-between" style={{ zIndex: 50 }}>
@@ -327,7 +428,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => setShowNewActivity(true)}
+            onPress={() => setShowAddMenu(true)}
             className="absolute bottom-8 right-6 h-20 w-20 items-center justify-center rounded-full shadow-lg"
             style={{ backgroundColor: theme.primary, zIndex: 50, elevation: 10 }}
           >
@@ -336,15 +437,30 @@ export default function HomeScreen() {
         </>
       )}
 
+      <AddMenu
+        visible={showAddMenu}
+        onClose={() => setShowAddMenu(false)}
+        onSelectActivity={() => setShowNewActivity(true)}
+        onSelectCategory={() => setShowNewCategory(true)}
+      />
+
       <CreateActivityModal
         visible={showNewActivity}
         createdAt={startOfDay(selectedDate)}
+        categories={categories}
         onClose={() => setShowNewActivity(false)}
         onCreated={loadActivities}
       />
 
+      <NewCategoryModal
+        visible={showNewCategory}
+        onClose={() => setShowNewCategory(false)}
+        onCreated={loadCategories}
+      />
+
       <EditActivityModal
         activity={editingActivity}
+        categories={categories}
         onClose={() => setEditingActivity(null)}
         onSaved={handleActivitySaved}
         onRequestArchive={handleRequestArchive}

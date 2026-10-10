@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import { Pressable } from "react-native-gesture-handler";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Tick02Icon } from "@hugeicons/core-free-icons";
+import { StarIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 
 import type { Activity } from "@/models/Activity";
 import { getIconByName } from "@/utils/icons";
@@ -21,6 +21,7 @@ export function ActivityButton({
   name,
   color,
   icon,
+  isFavorite,
   onPress,
   onLongPress,
   editMode = false,
@@ -64,6 +65,14 @@ export function ActivityButton({
       </Text>
       {showOverlay && (
         <View className="absolute inset-0 rounded-2xl" style={{ backgroundColor: "rgba(128, 128, 128, 0.35)" }} />
+      )}
+      {isFavorite && (
+        <View
+          className="absolute left-2 top-2 h-6 w-6 items-center justify-center rounded-full"
+          style={{ backgroundColor: Palette.favorite }}
+        >
+          <HugeiconsIcon icon={StarIcon} size={14} color="#FFFFFF" />
+        </View>
       )}
       {logged && (
         <View

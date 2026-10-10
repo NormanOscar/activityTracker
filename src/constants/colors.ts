@@ -3,6 +3,7 @@ export const Palette = {
   accentText: '#FFFFFF',
   success: '#2E9E5B',
   danger: '#D9534F',
+  favorite: '#F5C518',
   neutral: '#8C8C8C',
   demo: '#4A79E8',
   overlay: 'rgba(128,128,128,0.12)',

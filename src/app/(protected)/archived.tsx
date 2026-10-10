@@ -7,6 +7,7 @@ import { ArrowLeft01Icon, SortByDown01Icon, SortByUp01Icon } from "@hugeicons/co
 
 import { AuthContext } from "@/utils/authContext";
 import { useTheme } from "@/hooks/use-theme";
+import { PageHeader } from "@/components/PageHeader";
 import { ArchivedActivityRow } from "@/components/ArchivedActivityRow";
 import { getActivities, unarchiveActivity } from "@/services/activityService";
 import { getDateKey } from "@/utils/dateKey";
@@ -72,26 +73,26 @@ export default function ArchivedActivitiesScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: theme.background }} edges={["top", "bottom"]}>
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="h-10 w-10 items-center justify-center"
-        >
-          <HugeiconsIcon icon={ArrowLeft01Icon} size={30} color={theme.text} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => setSortAscending((prev) => !prev)}
-          className="h-10 w-10 items-center justify-center"
-        >
-          <HugeiconsIcon
-            icon={sortAscending ? SortByUp01Icon : SortByDown01Icon}
-            size={26}
-            color={theme.text}
-          />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: theme.background }} edges={["bottom"]}>
+      <PageHeader
+        left={
+          <TouchableOpacity onPress={() => router.back()} className="h-10 w-10 items-center justify-center">
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={30} color={theme.text} />
+          </TouchableOpacity>
+        }
+        right={
+          <TouchableOpacity
+            onPress={() => setSortAscending((prev) => !prev)}
+            className="h-10 w-10 items-center justify-center"
+          >
+            <HugeiconsIcon
+              icon={sortAscending ? SortByUp01Icon : SortByDown01Icon}
+              size={26}
+              color={theme.text}
+            />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView className="flex-1 px-4">
         <Text className="mb-4 text-2xl font-bold" style={{ color: theme.text }}>

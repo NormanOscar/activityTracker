@@ -8,6 +8,7 @@ import { ArchiveIcon, ArrowLeft01Icon, ArrowRight01Icon, Moon02Icon, Sun03Icon }
 import { AuthContext } from "@/utils/authContext";
 import { useSettings } from "@/utils/settingsContext";
 import { useTheme } from "@/hooks/use-theme";
+import { PageHeader } from "@/components/PageHeader";
 import { Palette } from "@/constants/colors";
 
 export default function SettingsScreen() {
@@ -17,15 +18,14 @@ export default function SettingsScreen() {
   const theme = useTheme();
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: theme.background }} edges={["top", "bottom"]}>
-      <View className="px-4 py-3">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="h-10 w-10 items-center justify-center"
-        >
-          <HugeiconsIcon icon={ArrowLeft01Icon} size={30} color={theme.text} />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: theme.background }} edges={["bottom"]}>
+      <PageHeader
+        left={
+          <TouchableOpacity onPress={() => router.back()} className="h-10 w-10 items-center justify-center">
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={30} color={theme.text} />
+          </TouchableOpacity>
+        }
+      />
 
       <View className="flex-1 px-4">
         <Text className="mb-4 text-2xl font-bold" style={{ color: theme.text }}>

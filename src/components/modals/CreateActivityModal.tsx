@@ -9,13 +9,16 @@ import { Palette } from "@/constants/colors";
 import { ColorSelect } from "@/components/inputs/ColorSelect";
 import { IconSelect } from "@/components/inputs/IconSelect";
 import { DateField } from "@/components/inputs/DateField";
+import { CategorySelect } from "@/components/inputs/CategorySelect";
 import { createActivity } from "@/services/activityService";
 import { startOfDay } from "@/utils/dateKey";
 import type { Color } from "@/models/Colors";
+import type { Category } from "@/models/Category";
 
 type CreateActivityModalProps = {
   visible: boolean;
   createdAt: Date;
+  categories: Category[];
   onClose: () => void;
   onCreated?: (activityId: string) => void;
 };
@@ -23,6 +26,7 @@ type CreateActivityModalProps = {
 export function CreateActivityModal({
   visible,
   createdAt: defaultCreatedAt,
+  categories,
   onClose,
   onCreated,
 }: CreateActivityModalProps) {
@@ -32,6 +36,7 @@ export function CreateActivityModal({
   const [name, setName] = useState("");
   const [color, setColor] = useState<Color | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
+  const [categoryId, setCategoryId] = useState("");
   const [startDate, setStartDate] = useState(defaultCreatedAt);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -41,6 +46,7 @@ export function CreateActivityModal({
     setName("");
     setColor(null);
     setIcon(null);
+    setCategoryId("");
     setStartDate(defaultCreatedAt);
     setError("");
   }, [visible, defaultCreatedAt]);
@@ -57,7 +63,7 @@ export function CreateActivityModal({
         name: name.trim(),
         color,
         icon,
-        categoryIds: [],
+        categoryId,
         createdAt: startOfDay(startDate),
       });
       onCreated?.(id);
@@ -118,6 +124,13 @@ export function CreateActivityModal({
                 </Text>
                 <IconSelect value={icon} onChange={setIcon} />
               </View>
+            </View>
+
+            <View className="gap-2">
+              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                Category
+              </Text>
+              <CategorySelect categories={categories} value={categoryId} onChange={setCategoryId} />
             </View>
 
             <View className="gap-2">

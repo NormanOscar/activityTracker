@@ -3,8 +3,8 @@ import { addDoc, collection, deleteField, doc, getDocs, Timestamp, updateDoc, wr
 import { FIREBASE_DB } from "@/config/FirebaseConfig";
 import type { Activity } from "@/models/Activity";
 
-type NewActivity = Pick<Activity, "name" | "color" | "icon" | "categoryIds" | "createdAt">;
-type EditableActivity = Pick<Activity, "name" | "color" | "icon" | "createdAt">;
+type NewActivity = Pick<Activity, "name" | "color" | "icon" | "categoryId" | "createdAt">;
+type EditableActivity = Pick<Activity, "name" | "color" | "icon" | "categoryId" | "isFavorite" | "createdAt">;
 
 function activitiesCollection(userId: string) {
   return collection(FIREBASE_DB, "users", userId, "activities");
@@ -19,8 +19,10 @@ export async function createActivity(userId: string, activity: NewActivity): Pro
   const nextSortOrder =
     existing.docs.reduce((max, d) => Math.max(max, d.data().sortOrder ?? -1), -1) + 1;
 
+  const { categoryId, ...rest } = activity;
   const ref = await addDoc(activitiesCollection(userId), {
-    ...activity,
+    ...rest,
+    ...(categoryId ? { categoryId } : {}),
     sortOrder: nextSortOrder,
   });
 
@@ -37,7 +39,8 @@ export async function getActivities(userId: string): Promise<Activity[]> {
       name: data.name,
       color: data.color,
       icon: data.icon,
-      categoryIds: data.categoryIds ?? [],
+      categoryId: data.categoryId,
+      isFavorite: data.isFavorite ?? false,
       createdAt: toDate(data.createdAt),
       archivedAt: toDate(data.archivedAt),
       deletedAt: toDate(data.deletedAt),
@@ -53,7 +56,11 @@ export async function updateActivity(
   activityId: string,
   data: EditableActivity
 ): Promise<void> {
-  await updateDoc(doc(FIREBASE_DB, "users", userId, "activities", activityId), data);
+  const { categoryId, ...rest } = data;
+  await updateDoc(doc(FIREBASE_DB, "users", userId, "activities", activityId), {
+    ...rest,
+    categoryId: categoryId ? categoryId : deleteField(),
+  });
 }
 
 export async function archiveActivity(userId: string, activityId: string, archivedAt: Date): Promise<void> {

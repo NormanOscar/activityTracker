@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Modal, Pressable, Text, TextInput, View } from "react-native";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, StarIcon } from "@hugeicons/core-free-icons";
 
 import { useTheme } from "@/hooks/use-theme";
 import { AuthContext } from "@/utils/authContext";
@@ -9,13 +9,16 @@ import { Palette } from "@/constants/colors";
 import { ColorSelect } from "@/components/inputs/ColorSelect";
 import { IconSelect } from "@/components/inputs/IconSelect";
 import { DateField } from "@/components/inputs/DateField";
+import { CategorySelect } from "@/components/inputs/CategorySelect";
 import { updateActivity } from "@/services/activityService";
 import { startOfDay } from "@/utils/dateKey";
 import type { Activity } from "@/models/Activity";
 import type { Color } from "@/models/Colors";
+import type { Category } from "@/models/Category";
 
 type EditActivityModalProps = {
   activity: Activity | null;
+  categories: Category[];
   onClose: () => void;
   onSaved?: (activity: Activity) => void;
   onRequestArchive: (activity: Activity) => void;
@@ -24,6 +27,7 @@ type EditActivityModalProps = {
 
 export function EditActivityModal({
   activity,
+  categories,
   onClose,
   onSaved,
   onRequestArchive,
@@ -35,6 +39,8 @@ export function EditActivityModal({
   const [name, setName] = useState("");
   const [color, setColor] = useState<Color | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
+  const [categoryId, setCategoryId] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
   const [startDate, setStartDate] = useState(() => startOfDay(new Date()));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -44,6 +50,8 @@ export function EditActivityModal({
     setName(activity.name);
     setColor(activity.color);
     setIcon(activity.icon);
+    setCategoryId(activity.categoryId ?? "");
+    setIsFavorite(activity.isFavorite ?? false);
     setStartDate(activity.createdAt ?? startOfDay(new Date()));
     setError("");
   }, [activity]);
@@ -57,8 +65,15 @@ export function EditActivityModal({
     setError("");
     try {
       const createdAt = startOfDay(startDate);
-      const updated: Activity = { ...activity, name: name.trim(), color, icon, createdAt };
-      await updateActivity(user.uid, activity.id, { name: updated.name, color, icon, createdAt });
+      const updated: Activity = { ...activity, name: name.trim(), color, icon, categoryId, isFavorite, createdAt };
+      await updateActivity(user.uid, activity.id, {
+        name: updated.name,
+        color,
+        icon,
+        categoryId,
+        isFavorite,
+        createdAt,
+      });
       onSaved?.(updated);
       onClose();
     } catch (e: any) {
@@ -80,13 +95,26 @@ export function EditActivityModal({
             <Text className="text-lg font-bold" style={{ color: theme.text }}>
               Edit Activity
             </Text>
-            <Pressable
-              onPress={onClose}
-              className="h-9 w-9 items-center justify-center rounded-full"
-              style={{ backgroundColor: theme.surface }}
-            >
-              <HugeiconsIcon icon={Cancel01Icon} size={18} color={theme.text} />
-            </Pressable>
+            <View className="flex-row items-center gap-2">
+              <Pressable
+                onPress={() => setIsFavorite((prev) => !prev)}
+                className="h-9 w-9 items-center justify-center rounded-full"
+                style={{ backgroundColor: theme.surface }}
+              >
+                <HugeiconsIcon
+                  icon={StarIcon}
+                  size={18}
+                  color={isFavorite ? Palette.favorite : theme.secondaryText}
+                />
+              </Pressable>
+              <Pressable
+                onPress={onClose}
+                className="h-9 w-9 items-center justify-center rounded-full"
+                style={{ backgroundColor: theme.surface }}
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={18} color={theme.text} />
+              </Pressable>
+            </View>
           </View>
 
           <View className="gap-4">
@@ -117,6 +145,13 @@ export function EditActivityModal({
                 </Text>
                 <IconSelect value={icon} onChange={setIcon} />
               </View>
+            </View>
+
+            <View className="gap-2">
+              <Text className="text-sm font-semibold" style={{ color: theme.secondaryText }}>
+                Category
+              </Text>
+              <CategorySelect categories={categories} value={categoryId} onChange={setCategoryId} />
             </View>
 
             <View className="gap-2">
